@@ -5,12 +5,24 @@ plugins {
 allprojects {
     group = "fr.darklash.regensystem"
     version = project.findProperty("regensystemVersion").toString() ?: "0.0.1"
+}
 
-    repositories {
-        mavenCentral()
-        maven {
-            name = "papermc-repo"
-            url = "https://repo.papermc.io/repository/maven-public/"
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+
+        repositories {
+            mavenLocal()
+            maven {
+                url = uri("$buildDir/repo") // Important pour JitPack
+            }
         }
     }
 }

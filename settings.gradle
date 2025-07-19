@@ -6,4 +6,4 @@ pluginManagement {
 
 rootProject.name = 'RegenSystem'
 
-include("regensystem-api", "regensystem-plugin")
+include("regensystem-api")
