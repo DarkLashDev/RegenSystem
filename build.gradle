@@ -10,19 +10,4 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-            }
-        }
-
-        repositories {
-            mavenLocal()
-            maven {
-                url = uri("$buildDir/repo") // Important pour JitPack
-            }
-        }
-    }
 }
