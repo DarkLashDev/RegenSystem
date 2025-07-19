@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "fr.darklash.regensystem"
-version = "0.0.2"
+version = project.findProperty("regensystemVersion") ?: "0.0.1"
 
 repositories {
     mavenCentral()
@@ -28,8 +28,11 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId = "fr.darklash.regensystem"
+            artifactId = "regensystem-api"
+            version = project.findProperty("regensystemVersion") ?: "0.0.1"
+
             from components.java
-            artifactId = "regensystem-api" as Publication
         }
     }
 }

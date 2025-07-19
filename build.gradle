@@ -4,7 +4,7 @@ plugins {
 
 allprojects {
     group = "fr.darklash.regensystem"
-    version = "0.0.1"
+    version = project.findProperty("regensystemVersion").toString() ?: "0.0.1"
 
     repositories {
         mavenCentral()
