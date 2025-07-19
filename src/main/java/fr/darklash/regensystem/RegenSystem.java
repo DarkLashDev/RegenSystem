@@ -4,9 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import fr.darklash.regensystem.api.RegenSystemAPI;
-import fr.darklash.regensystem.api.RegenSystemImpl;
-import fr.darklash.regensystem.api.listener.RegenZoneEvent;
 import fr.darklash.regensystem.command.Regen;
 import fr.darklash.regensystem.listener.Menu;
 import fr.darklash.regensystem.listener.Session;
@@ -41,8 +38,6 @@ public final class RegenSystem extends JavaPlugin {
 
     @Getter
     private static RegenSystem instance;
-    @Getter
-    private static RegenSystemAPI api;
 
     private FileManager fileManager;
     private ZoneManager zoneManager;
@@ -59,9 +54,6 @@ public final class RegenSystem extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        api = new RegenSystemImpl();
-
-        Bukkit.getPluginManager().callEvent(new RegenZoneEvent("zone1"));
 
         initManagers();
         connectDatabase();
