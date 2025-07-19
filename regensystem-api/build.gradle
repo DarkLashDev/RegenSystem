@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "fr.darklash.regensystem"
-version = "0.0.1"
+version = "0.0.2"
 
 repositories {
     mavenCentral()
@@ -23,4 +23,13 @@ dependencies {
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = "regensystem-api" as Publication
+        }
+    }
 }

@@ -1,0 +1,4 @@
+# jitpack.yml
+jdk: 21
+install:
+  - ./gradlew :regensystem-api:publishToMavenLocal
