@@ -1,0 +1,16 @@
+plugins {
+    id('java')
+}
+
+allprojects {
+    group = "fr.darklash.regensystem"
+    version = "0.0.1"
+
+    repositories {
+        mavenCentral()
+        maven {
+            name = "papermc-repo"
+            url = "https://repo.papermc.io/repository/maven-public/"
+        }
+    }
+}

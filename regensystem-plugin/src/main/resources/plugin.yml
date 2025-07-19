@@ -1,0 +1,60 @@
+name: RegenSystem
+version: '${version}'
+main: fr.darklash.regensystem.RegenSystem
+api-version: '1.20'
+authors: [ DarkLash ]
+description: Regeneration zone management control
+website: https://darklash.fr/
+
+softdepend:
+  - PlaceholderAPI
+
+commands:
+  regen:
+    usage: /regen <pos1|pos2|save|reload|delete|snapshot|wand|enable|disable|menu>
+    description: Regeneration zone management control
+
+permissions:
+  regensystem.*:
+    description: Gives access to all RegenSystem commands
+    default: op
+    children:
+      regensystem.command: true
+      regensystem.pos: true
+      regensystem.save: true
+      regensystem.reload: true
+      regensystem.delete: true
+      regensystem.snapshot: true
+      regensystem.wand: true
+      regensystem.toggle: true
+      regensystem.menu: true
+  regensystem.command:
+    description: Allows use of /regen command base
+    default: op
+  regensystem.pos:
+    description: Allows setting pos1 and pos2
+    default: op
+  regensystem.save:
+    description: Allows saving new zones
+    default: op
+  regensystem.reload:
+    description: Allows reloading all zones
+    default: op
+  regensystem.delete:
+    description: Allows deleting zones
+    default: op
+  regensystem.snapshot:
+    description: Allows updating zone snapshots
+    default: op
+  regensystem.wand:
+    description: Allows giving the selection wand
+    default: op
+  regensystem.toggle:
+    description: Allows enabling/disabling zones or global regen
+    default: op
+  regensystem.menu:
+    description: Allows open menu
+    default: op
+  regensystem.update:
+    description: Receive an update message on connection
+    default: op

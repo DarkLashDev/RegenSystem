@@ -1,0 +1,12 @@
+# RegenSystem - Configuration file
+# Plugin page: https://modrinth.com/plugin/regensystem
+
+# Configuration file version (used for future auto-migrations), do not modify !
+version: 1
+
+# Enables debug mode (detailed logs in console)
+# false = short logs; true = full logs (e.g., stack traces)
+debug: false
+
+# Prefix shown in all messages sent by the plugin
+prefix: "&6[RegenSystem] &r"

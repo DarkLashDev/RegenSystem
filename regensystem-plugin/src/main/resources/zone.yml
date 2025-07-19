@@ -1,0 +1,4 @@
+# Global settings
+global:
+  # Enables or disables regeneration globally for all zones
+  regen-enabled: true
