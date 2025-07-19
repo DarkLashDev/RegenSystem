@@ -41,7 +41,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.6")
-    implementation project(":regensystem-api")
+    compileOnly project(":regensystem-api")
     implementation("org.json:json:20250517")
     implementation("org.yaml:snakeyaml:2.4")
     implementation("org.bstats:bstats-bukkit:3.1.0")
