@@ -1,0 +1,42 @@
+DL Group Public License (RegenSystem Edition)
+
+Version 1.0 – 2025
+
+Copyright (c) 2025 DL Group
+
+This project (RegenSystem) is licensed under the following terms:
+
+1. Permissions
+
+You are allowed to :
+- Use the code for personal or public projects
+- Modify the source code
+- Redistribute modified or unmodified versions of the project
+- Include the project in your server or development setup
+
+2. Conditions
+
+- You must credit the original author: **DL Group**
+  (Include in a visible place such as plugin.yml, README, or Modrinth page)
+- Any redistribution, including modified versions, **must remain free of charge**
+  (No sale or monetization of the plugin is allowed)
+- You must keep the project **open-source**
+  (If you redistribute a modified version, you must publish its full source code)
+- You must not obfuscate the code
+  (Redistributed versions must remain readable and accessible)
+
+3. Prohibitions
+
+- You may **not sell** this plugin or its modified versions
+- You may **not use obfuscation, encryption, or any technique** to hide the code
+- You may **not remove** or alter original authorship and license information
+
+4. Warranty Disclaimer
+
+This software is provided "as is", without any warranty of any kind,
+express or implied. DL Group is not liable for any damage resulting
+from the use of this software.
+
+---
+
+By using or modifying this project, you accept the terms of this license.
