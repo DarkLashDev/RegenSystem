@@ -2,6 +2,7 @@
 
 [![](https://img.shields.io/modrinth/dt/regensystem?label=Downloads&color=brightgreen&style=flat-square)](https://modrinth.com/plugin/regensystem)
 [![Modrinth](https://img.shields.io/modrinth/v/regensystem?color=green&label=Modrinth&logo=modrinth)](https://modrinth.com/plugin/regensystem)
+[![](https://jitpack.io/v/DarkLash1/RegenSystem.svg)](https://jitpack.io/#DarkLash1/RegenSystem)
 [![License: DL Group Public License](https://img.shields.io/badge/license-DLGPL--RegenSystem-orange.svg)](https://github.com/DarkLash1/RegenSystem/blob/main/LICENSE)
 
 A powerful, flexible block regeneration system designed for PvP Box, survival zones, or mining zones. 

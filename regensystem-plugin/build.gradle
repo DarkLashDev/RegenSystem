@@ -112,8 +112,6 @@ modrinth {
 
     uploadFile.set(tasks.named("shadowJar").flatMap { it.archiveFile })
 
-    changelog.set(file("CHANGELOG.md").exists() ? file("CHANGELOG.md").text : "No changelog provided.")
-
     gameVersions.set(["1.20.6", "1.20.5", "1.20.4", "1.20.3", "1.20.2", "1.20.1", "1.20"]) // Ajoute d'autres versions si tu veux
     loaders.set(["bukkit", "paper"]) // Pour Bukkit, tu peux ajouter "bukkit" aussi
 }
