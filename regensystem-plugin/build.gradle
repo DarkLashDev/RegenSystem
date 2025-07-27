@@ -121,7 +121,11 @@ modrinth {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
+            artifact(tasks.shadowJar.archiveFile) {
+                builtBy tasks.shadowJar
+                classifier = null
+            }
+
             groupId = 'com.github.DarkLash1'
             artifactId = 'regensystem-plugin'
             version = rootProject.version
