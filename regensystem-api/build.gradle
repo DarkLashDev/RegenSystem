@@ -1,0 +1,29 @@
+plugins {
+    id("java")
+    id("maven-publish")
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(21)
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = 'com.github.DarkLash1'
+            artifactId = 'regensystem-api'
+            version = rootProject.version
+        }
+    }
+}
