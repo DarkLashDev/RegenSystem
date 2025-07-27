@@ -1,12 +1,15 @@
 package fr.darklash.regensystem.util;
 
 import fr.darklash.regensystem.RegenSystem;
+import fr.darklash.regensystem.api.event.RegenZoneEvent;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -47,6 +50,20 @@ public class Zone {
     public void regenerate() {
         World world = corner1.getWorld();
         if (world == null) return;
+
+        for (Player player : world.getPlayers()) {
+            RegenZoneEvent event = new RegenZoneEvent(name, player);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return; // annuler la regen si un event est annulé
+            }
+        }
+
+        RegenZoneEvent eventGlobal = new RegenZoneEvent(name);
+        Bukkit.getPluginManager().callEvent(eventGlobal);
+        if (eventGlobal.isCancelled()) {
+            return;
+        }
 
         int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
         int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
