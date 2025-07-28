@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import fr.darklash.regensystem.api.RegenSystemProvider;
 import fr.darklash.regensystem.command.Regen;
 import fr.darklash.regensystem.listener.Menu;
 import fr.darklash.regensystem.listener.Session;
@@ -54,6 +55,8 @@ public final class RegenSystem extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        RegenSystemProvider.set(new ZoneManager());
 
         initManagers();
         connectDatabase();

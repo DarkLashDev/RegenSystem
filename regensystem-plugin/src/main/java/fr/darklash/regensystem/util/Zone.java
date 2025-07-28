@@ -1,8 +1,9 @@
 package fr.darklash.regensystem.util;
 
 import fr.darklash.regensystem.RegenSystem;
-import fr.darklash.regensystem.api.event.RegenZoneEvent;
-import lombok.Getter;
+import fr.darklash.regensystem.api.event.ZoneRegenerationCompleteEvent;
+import fr.darklash.regensystem.api.event.ZoneRegenerationStartEvent;
+import fr.darklash.regensystem.api.zone.RegenZone;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -16,11 +17,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-@Getter
-public class Zone {
+public class Zone implements RegenZone {
 
-    @Getter
     private final String name;
     private final Location corner1;
     private final Location corner2;
@@ -33,6 +33,7 @@ public class Zone {
         captureState();
     }
 
+    @Override
     public void captureState() {
         originalBlocks.clear();
         for (int x = Math.min(corner1.getBlockX(), corner2.getBlockX()); x <= Math.max(corner1.getBlockX(), corner2.getBlockX()); x++) {
@@ -47,21 +48,24 @@ public class Zone {
         }
     }
 
+    @Override
     public void regenerate() {
         World world = corner1.getWorld();
         if (world == null) return;
 
         for (Player player : world.getPlayers()) {
-            RegenZoneEvent event = new RegenZoneEvent(name, player);
+            if (!contains(player.getLocation())) continue;
+
+            ZoneRegenerationStartEvent event = new ZoneRegenerationStartEvent(name, player);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                return; // annuler la regen si un event est annulé
+                return;
             }
         }
 
-        RegenZoneEvent eventGlobal = new RegenZoneEvent(name);
-        Bukkit.getPluginManager().callEvent(eventGlobal);
-        if (eventGlobal.isCancelled()) {
+        ZoneRegenerationStartEvent globalEvent = new ZoneRegenerationStartEvent(name, null);
+        Bukkit.getPluginManager().callEvent(globalEvent);
+        if (globalEvent.isCancelled()) {
             return;
         }
 
@@ -126,8 +130,17 @@ public class Zone {
             loc.getBlock().setBlockData(originalBlockData, false);
             changedBlocks++;
         }
+
+        Bukkit.getPluginManager().callEvent(new ZoneRegenerationCompleteEvent(name));
     }
 
+    @Override
+    public Map<String, String> getOriginalBlockData() {
+        return originalBlocks.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAsString()));
+    }
+
+    @Override
     public void load() {
         originalBlocks.clear();
         try (Connection conn = RegenSystem.getInstance().getDatabaseManager().getConnection();
@@ -159,6 +172,7 @@ public class Zone {
         }
     }
 
+    @Override
     public void save() {
         try (Connection conn = RegenSystem.getInstance().getDatabaseManager().getConnection()) {
             conn.setAutoCommit(false);
@@ -199,9 +213,36 @@ public class Zone {
         }
     }
 
+    @Override
+    public Map<String, BlockData> getOriginalBlocks() {
+        return originalBlocks;
+    }
+
+    @Override
     public boolean isEnabled() {
         FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
         return config.getBoolean("zones." + name + ".enabled", true);
+    }
+
+    @Override
+    public boolean contains(Location location) {
+        if (location == null) return false;
+        if (!location.getWorld().equals(corner1.getWorld())) return false;
+
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+
+        int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
+        int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
+        int minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
+        int maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
+        int minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
+        int maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
+
+        return x >= minX && x <= maxX
+                && y >= minY && y <= maxY
+                && z >= minZ && z <= maxZ;
     }
 
     private Location findSafeLocationNearZone(World world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
@@ -230,6 +271,22 @@ public class Zone {
         return null; // Aucun endroit sûr trouvé
     }
 
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public Location getCorner1() {
+        return corner1;
+    }
+
+    @Override
+    public Location getCorner2() {
+        return corner2;
+    }
+
+    @Override
     public Location getCenter() {
         return corner1.clone().add(corner2).multiply(0.5);
     }

@@ -29,7 +29,7 @@ Replace `<version>` with the latest release tag (e.g. `v0.0.9`).
 ### Listen to `RegenZoneEvent`
 
 ```java
-import fr.darklash.regensystem.api.event.RegenZoneEvent;
+import fr.darklash.regensystem.api.event.ZoneRegenerationStartEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.entity.Player;

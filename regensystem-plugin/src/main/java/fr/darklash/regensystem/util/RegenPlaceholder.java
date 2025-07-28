@@ -1,6 +1,8 @@
 package fr.darklash.regensystem.util;
 
 import fr.darklash.regensystem.RegenSystem;
+import fr.darklash.regensystem.api.RegenSystemProvider;
+import fr.darklash.regensystem.api.zone.RegenZone;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -72,7 +74,7 @@ public class RegenPlaceholder extends PlaceholderExpansion {
         // %regen_block_count_<zone>%
         if (params.startsWith("block_count_")) {
             String zoneName = params.substring("block_count_".length());
-            Zone zone = plugin.getZoneManager().getZone(zoneName);
+            RegenZone zone = RegenSystemProvider.get().getZone(zoneName);
             if (zone != null) {
                 return String.valueOf(zone.getOriginalBlocks().size());
             } else {
@@ -83,7 +85,7 @@ public class RegenPlaceholder extends PlaceholderExpansion {
         // %regen_corner1_<zone>%
         if (params.startsWith("corner1_")) {
             String zoneName = params.substring("corner1_".length());
-            Zone zone = plugin.getZoneManager().getZone(zoneName);
+            RegenZone zone = RegenSystemProvider.get().getZone(zoneName);
             if (zone != null) {
                 return RegenLocation.toString(zone.getCorner1());
             } else {
@@ -94,7 +96,7 @@ public class RegenPlaceholder extends PlaceholderExpansion {
         // %regen_corner2_<zone>%
         if (params.startsWith("corner2_")) {
             String zoneName = params.substring("corner2_".length());
-            Zone zone = plugin.getZoneManager().getZone(zoneName);
+            RegenZone zone = RegenSystemProvider.get().getZone(zoneName);
             if (zone != null) {
                 return RegenLocation.toString(zone.getCorner2());
             } else {
@@ -117,7 +119,7 @@ public class RegenPlaceholder extends PlaceholderExpansion {
         // %regen_name_<zone>%
         if (params.startsWith("name_")) {
             String zoneName = params.substring("name_".length());
-            Zone zone = plugin.getZoneManager().getZone(zoneName);
+            RegenZone zone = RegenSystemProvider.get().getZone(zoneName);
             return (zone != null) ? zone.getName() : "unknown";
         }
 

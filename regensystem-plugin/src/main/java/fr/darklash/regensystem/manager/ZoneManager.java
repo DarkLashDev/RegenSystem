@@ -1,6 +1,8 @@
 package fr.darklash.regensystem.manager;
 
 import fr.darklash.regensystem.RegenSystem;
+import fr.darklash.regensystem.api.zone.RegenZoneManager;
+import fr.darklash.regensystem.api.zone.RegenZone;
 import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Zone;
 import fr.darklash.regensystem.util.RegenLocation;
@@ -9,18 +11,16 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class ZoneManager {
+public class ZoneManager implements RegenZoneManager {
 
-    private final Map<String, Zone> zones = new HashMap<>();
+    private final Map<String, RegenZone> zones = new HashMap<>();
     private final Map<String, BukkitTask> scheduledTasks = new HashMap<>();
     private final Map<String, Integer> zoneTimers = new HashMap<>();
     private final Map<String, BukkitTask> timerTasks = new HashMap<>();
 
+    @Override
     public void loadZones() {
         // Annule les anciennes tâches
         for (BukkitTask task : scheduledTasks.values()) {
@@ -68,7 +68,7 @@ public class ZoneManager {
         }
     }
 
-    private void startZoneTask(Zone zone, int delay) {
+    private void startZoneTask(RegenZone zone, int delay) {
         String zoneName = zone.getName();
         zoneTimers.put(zoneName, delay);
 
@@ -87,6 +87,7 @@ public class ZoneManager {
         timerTasks.put(zoneName, task);
     }
 
+    @Override
     public void reloadZone(String name) {
         FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
         ConfigurationSection section = config.getConfigurationSection("zones." + name);
@@ -115,8 +116,9 @@ public class ZoneManager {
         startZoneTask(zone, delay);
     }
 
+    @Override
     public void deleteZone(String name) {
-        Zone zone = zones.remove(name);
+        RegenZone zone = zones.remove(name);
         if (zone != null) {
             BukkitTask task = scheduledTasks.remove(name);
             if (task != null) task.cancel();
@@ -126,7 +128,8 @@ public class ZoneManager {
         }
     }
 
-    public void addZone(Zone zone) {
+    @Override
+    public void addZone(RegenZone zone) {
         zones.put(zone.getName(), zone);
 
         FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
@@ -138,18 +141,27 @@ public class ZoneManager {
         startZoneTask(zone, delay);
     }
 
-    public Collection<Zone> getZones() {
-        return zones.values();
+    @Override
+    public Collection<RegenZone> getZones() {
+        return new ArrayList<>(zones.values());
     }
 
-    public Zone getZone(String name) {
+    @Override
+    public boolean isZoneRegistered(String name) {
+        return zones.containsKey(name);
+    }
+
+    @Override
+    public RegenZone getZone(String name) {
         return zones.get(name);
     }
 
+    @Override
     public Set<String> getZoneNames() {
         return zones.keySet();
     }
 
+    @Override
     public int getTimeLeft(String zoneName) {
         return zoneTimers.getOrDefault(zoneName, -1);
     }
