@@ -63,7 +63,7 @@ public final class RegenSystem extends JavaPlugin {
         registerListeners(getServer().getPluginManager());
         registerPlaceholders();
 
-        RegenSystemProvider.set(this.zoneManager);
+        RegenSystemProvider.set(zoneManager);
 
         checkUpdate();
 
