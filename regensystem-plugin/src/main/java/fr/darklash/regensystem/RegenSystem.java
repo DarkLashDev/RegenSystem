@@ -56,14 +56,14 @@ public final class RegenSystem extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        RegenSystemProvider.set(new ZoneManager());
-
         initManagers();
         connectDatabase();
         zoneManager.loadZones();
         registerCommands();
         registerListeners(getServer().getPluginManager());
         registerPlaceholders();
+
+        RegenSystemProvider.set(this.zoneManager);
 
         checkUpdate();
 
