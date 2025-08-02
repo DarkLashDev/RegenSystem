@@ -4,8 +4,7 @@
 [![Modrinth](https://img.shields.io/modrinth/v/regensystem?color=green&label=Modrinth&logo=modrinth)](https://modrinth.com/plugin/regensystem)
 [![License: DL Group Public License](https://img.shields.io/badge/license-DLGPL--RegenSystem-orange.svg)](https://github.com/DarkLash1/RegenSystem/blob/main/LICENSE)
 
-A powerful, flexible block regeneration system designed for PvP Box, survival zones, or mining zones. 
-Define cuboid areas and let them regenerate automatically over time – all with a single command.
+A powerful, flexible block regeneration system designed for PvP Box, survival zones, or mining zones. Define cuboid areas and let them regenerate automatically over time – all with a single command.
 
 ---
 
@@ -14,6 +13,15 @@ Define cuboid areas and let them regenerate automatically over time – all with
 - ✅ Fully compatible with Paper — RegenSystem uses modern Adventure components that are not supported on Spigot and only partially supported on Bukkit.
 - ❌ Spigot is no longer supported — the plugin will not work correctly due to missing Adventure support.
 - ⚠️ Not tested on Purpur or Folia — compatibility may vary.
+
+---
+
+### ✅ RegenSystem API
+
+**🔗 Full documentation available here :**
+[RegenSystem API Reference](https://github.com/DarkLash1/RegenSystem/blob/main/API.md)
+
+Learn how to interact with the plugin through custom events and clean interfaces for building compatible extensions or plugins.
 
 ---
 
@@ -54,6 +62,14 @@ Define cuboid areas and let them regenerate automatically over time – all with
 
 ---
 
+### 🔁 Dependencies
+
+- ✅ PlaceholderAPI _(soft-depend, optional)_
+
+To enable placeholders, simply install PlaceholderAPI – the plugin will auto-detect it.
+
+---
+
 ### ✅ Placeholders (via PlaceholderAPI)
 
 If [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) is installed, you can use the following placeholders :
@@ -77,8 +93,7 @@ If [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) is 
 
 ### ✅ bStats
 
-RegenSystem uses [bStats](https://bstats.org/plugin/bukkit/RegenSystem) to collect basic stats like server count and version. 
-This helps the developer improve the plugin over time.
+RegenSystem uses [bStats](https://bstats.org/plugin/bukkit/RegenSystem) to collect basic stats like server count and version. This helps the developer improve the plugin over time.
 
 ---
 
@@ -122,16 +137,8 @@ prefix: "&6[RegenSystem] &r"  # Prefix used in plugin messages
 ### ✅ zone.db (SQLite)
 
 > Stores block snapshots for each zone – fast, optimized, and safe.
->
+> 
 > Do **not** edit manually – managed automatically by the plugin.
-
----
-
-### 🔁 Dependencies
-
-- ✅ PlaceholderAPI _(soft-depend, optional)_
-
-To enable placeholders, simply install PlaceholderAPI – the plugin will auto-detect it.
 
 ---
 
