@@ -55,6 +55,17 @@ public final class RegenSystem extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        boolean isPaper = Bukkit.getServer().getName().equalsIgnoreCase("Paper")
+                || Bukkit.getServer().getVersion().contains("Paper")
+                || Bukkit.getServer().getBukkitVersion().contains("Paper");
+
+        if (!isPaper) {
+            getLogger().warning("RegenSystem requires Paper. Disabling...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         zoneManager = new ZoneManager();
 
         RegenSystemAPI.init(zoneManager);

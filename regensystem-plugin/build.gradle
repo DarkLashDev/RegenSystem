@@ -8,32 +8,11 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven {
-        name = "papermc-repo"
-        url = "https://repo.papermc.io/repository/maven-public/"
-    }
-    maven {
-        name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"
-    }
-    maven {
-        name = "dmulloy2-repo"
-        url = "https://repo.dmulloy2.net/repository/public/"
-    }
-    maven {
-        name = "codemc-repo"
-        url = "https://repo.codemc.io/repository/maven-public/"
-    }
-    maven {
-        url = 'https://repo.extendedclip.com/releases/'
-    }
-    maven {
-        name = "jitpack"
-        url = "https://jitpack.io/"
-    }
-    maven {
-        url = "https://repo.bstats.org"
-    }
+    maven { url = "https://oss.sonatype.org/content/groups/public/" }
+    maven { url = "https://repo.dmulloy2.net/repository/public/" }
+    maven { url = "https://repo.codemc.io/repository/maven-public/" }
+    maven { url = 'https://repo.extendedclip.com/releases/' }
+    maven { url = "https://repo.bstats.org" }
 }
 
 dependencies {
@@ -53,10 +32,7 @@ dependencies {
 
 tasks {
     runServer {
-        // Configure the Minecraft version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
-        minecraftVersion("1.20")
+        minecraftVersion("1.20.6")
     }
 }
 
@@ -79,7 +55,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.shadowJar {
-    relocate("org.bstats", "fr.darklash.regensystem.bstats")
+    relocate("org.bstats", "fr.darklash.regensystem.libs.bstats")
     archiveFileName.set("RegenSystem-${rootProject.version}.jar")
     minimize()
 }
@@ -104,16 +80,25 @@ processResources {
 modrinth {
     token.set(project.findProperty("modrinthToken")?.toString())
 
-    projectId.set("regensystem") // Le slug ou l’ID Modrinth de ton projet
-    versionNumber.set(rootProject.version.toString()) // Utilise le même numéro que celui du plugin
-    versionName.set("RegenSystem ${rootProject.version}") // Nom lisible de la version
+    projectId.set("regensystem")
+    versionNumber.set(rootProject.version.toString())
+    versionName.set("RegenSystem ${rootProject.version}")
 
     versionType.set("release") // release | beta | alpha
 
     uploadFile.set(tasks.named("shadowJar").flatMap { it.archiveFile })
 
-    gameVersions.set(["1.20.6", "1.20.5", "1.20.4", "1.20.3", "1.20.2", "1.20.1", "1.20"]) // Ajoute d'autres versions si tu veux
-    loaders.set(["bukkit", "paper"]) // Pour Bukkit, tu peux ajouter "bukkit" aussi
+    gameVersions.set([
+            "1.20",
+            "1.20.1",
+            "1.20.2",
+            "1.20.3",
+            "1.20.4",
+            "1.20.5",
+            "1.20.6"
+    ])
+
+    loaders.set(["bukkit", "paper"])
 }
 
 publishing {
