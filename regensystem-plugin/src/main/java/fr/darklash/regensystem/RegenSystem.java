@@ -265,7 +265,7 @@ public final class RegenSystem extends JavaPlugin {
             if (lines.size() < 2) return false;
 
             Instant timestamp = Instant.parse(lines.get(0));
-            if (timestamp.isBefore(Instant.now().minusSeconds(3600))) { // Cache valide 1h
+            if (timestamp.isBefore(Instant.now().minusSeconds(3600))) {
                 return false;
             }
 

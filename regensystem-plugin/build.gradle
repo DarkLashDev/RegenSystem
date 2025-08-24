@@ -3,7 +3,7 @@ plugins {
     id("maven-publish")
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("com.modrinth.minotaur") version "2.+"
-    id("com.gradleup.shadow") version "9.0.0-rc1"
+    id("com.gradleup.shadow") version "9.0.2"
 }
 
 repositories {
@@ -25,9 +25,6 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.1.0")
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
-    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.60.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.13.2")
 }
 
 tasks {

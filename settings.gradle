@@ -1,3 +1,9 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'RegenSystem'
 
 include("regensystem-api", "regensystem-plugin")
