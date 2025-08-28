@@ -19,7 +19,7 @@ A powerful, flexible block regeneration system designed for PvP Box, survival zo
 ### ✅ RegenSystem API
 
 **🔗 Full documentation available here :**
-[RegenSystem API Reference](https://github.com/DarkLash1/RegenSystem/blob/main/API.md)
+[RegenSystem API](https://github.com/DarkLash1/RegenSystem/wiki/RegenSystem-API)
 
 Learn how to interact with the plugin through custom events and clean interfaces for building compatible extensions or plugins.
 
@@ -27,18 +27,23 @@ Learn how to interact with the plugin through custom events and clean interfaces
 
 ### ✅ Commands
 
-| Command                        | Description                                                             |
-|-------------------------------|-------------------------------------------------------------------------|
-| `/regen pos1`                 | Set the first corner of the zone at your current location.              |
-| `/regen pos2`                 | Set the second corner of the zone at your current location.             |
-| `/regen save <name> [delay]`  | Save a new zone with an optional regen delay in seconds.                |
-| `/regen reload`               | Reload all zones and restart regen tasks.                               |
-| `/regen delete <name>`        | Delete a zone and its stored data.                                      |
-| `/regen snapshot <name>`      | Update the stored state of a zone with the current blocks.              |
-| `/regen wand`                 | Receive a diamond axe to select pos1/pos2 with left/right click.        |
-| `/regen enable <all\name>`   | Enable regen globally or for a specific zone.                           |
-| `/regen disable <all\name>`  | Disable regen globally or for a specific zone.                          |
-| `/regen menu`                | Opens the menu to modify options                                        |
+| Command                        | Description                                                                 |
+|-------------------------------|-----------------------------------------------------------------------------|
+| `/regen pos1`                 | Set the first corner of the zone at your current location.                 |
+| `/regen pos2`                 | Set the second corner of the zone at your current location.                |
+| `/regen save <name> [delay]`  | Save a new zone with an optional regen delay in seconds.                   |
+| `/regen reload`               | Reload all zones and restart regen tasks.                                  |
+| `/regen delete <name>`        | Delete a zone and its stored data.                                         |
+| `/regen snapshot <name>`      | Update the stored state of a zone with the current blocks.                 |
+| `/regen wand`                 | Receive a diamond axe to select pos1/pos2 with left/right click.           |
+| `/regen enable <all\name>`   | Enable regen globally or for a specific zone.                              |
+| `/regen disable <all\name>`  | Disable regen globally or for a specific zone.                             |
+| `/regen menu`                | Opens the menu to modify options.                                    
+|
+| `/regen help`                | Show the help menu.
+|
+| `/regen flag <zone> <flag> <on\off>` | Enables or disables flags for a zone.
+|
 
 ---
 
@@ -46,6 +51,7 @@ Learn how to interact with the plugin through custom events and clean interfaces
 
 | Permission             | Description                                       | Default |
 | ---------------------- | ------------------------------------------------- | ------- |
+| `regensystem.*`        | Grants all permissions above                      | OP      |
 | `regensystem.command`  | Use the base `/regen` command                     | OP      |
 | `regensystem.pos`      | Set pos1 and pos2 using `/regen pos1/pos2`        | OP      |
 | `regensystem.save`     | Save zones via `/regen save`                      | OP      |
@@ -55,7 +61,8 @@ Learn how to interact with the plugin through custom events and clean interfaces
 | `regensystem.wand`     | Give yourself the selection axe via `/regen wand` | OP      |
 | `regensystem.toggle`   | Enable/disable regen with `/regen enable/disable` | OP      |
 | `regensystem.menu`     | Open menu via `/regen menu`                       | OP      |
-| `regensystem.*`        | Grants all permissions above                      | OP      |
+| `regensystem.update`   | Receive an update message on connection           | OP      |
+| `regensystem.flag`     | Allows you to manage flags with `/regen flag`     | OP      |
 
 💡 Use `regensystem.*` to quickly give full access to the plugin.
 
@@ -101,9 +108,10 @@ RegenSystem uses [bStats](https://bstats.org/plugin/bukkit/RegenSystem) to colle
 ```bash
 plugins/
 └── RegenSystem/
-    ├── config.yml # Plugin messages & prefix (do NOT edit version !)
-    ├── zone.yml   # Zones definition: positions, delays, enabled flags
-    └── zone.db    # 🔥 Block data storage (SQLite, auto-managed)
+    ├── config.yml     # Plugin messages & prefix (do NOT edit version !)
+    ├── zone.yml       # Zones definition : positions, delays, enabled flags
+    ├── version.cache  # Don't touch this file
+    └── zone.db        # 🔥 Block data storage (SQLite, auto-managed)
 ```
 
 ---
@@ -122,6 +130,15 @@ zones:
     pos2: world,110,70,110 # Second corner of the cuboid (x, y, z)
     regenDelay: 60         # Delay in seconds
     enabled: true          # If false, the zone won't regenerate
+    flags:                 # Zone-specific flags
+      BLOCK_BREAK: true
+      ITEM_DROP: true
+      MOB_SPAWN: true
+      PVP: true
+      BLOCK_PLACE: true
+      MOB_DAMAGE: true
+      EXPLOSION: true
+      ITEM_PICKUP: true
 ```
 
 ### ✅ config.yml
@@ -129,14 +146,17 @@ zones:
 > ⚠️ Do not edit the version field – it’s used internally for updates.
 
 ```yaml
-version: 1                    # ⚠️ Do not modify!
+version: 2                    # ⚠️ Do not modify!
+debug: false                  # For more information in the logs
 prefix: "&6[RegenSystem] &r"  # Prefix used in plugin messages
+updates:               
+  check-interval: 12          # In hours
+  notify-admins: true         # To notify the admins
 ```
 
 ### ✅ zone.db (SQLite)
 
 > Stores block snapshots for each zone – fast, optimized, and safe.
-> 
 > Do **not** edit manually – managed automatically by the plugin.
 
 ---

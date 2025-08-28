@@ -11,7 +11,7 @@ softdepend:
 
 commands:
   regen:
-    usage: /regen <pos1|pos2|save|reload|delete|snapshot|wand|enable|disable|menu>
+    usage: /regen <pos1|pos2|save|reload|delete|snapshot|wand|enable|disable|menu|help|flag>
     description: Regeneration zone management control
 
 permissions:
@@ -28,6 +28,8 @@ permissions:
       regensystem.wand: true
       regensystem.toggle: true
       regensystem.menu: true
+      regensystem.update: true
+      regensystem.flag: true
   regensystem.command:
     description: Allows use of /regen command base
     default: op
