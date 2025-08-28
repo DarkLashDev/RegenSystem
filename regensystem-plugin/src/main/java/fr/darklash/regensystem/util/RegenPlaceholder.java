@@ -87,7 +87,7 @@ public class RegenPlaceholder extends PlaceholderExpansion {
             String zoneName = params.substring("corner1_".length());
             RegenZone zone = RegenSystemAPI.get().getZone(zoneName);
             if (zone != null) {
-                return RegenLocation.toString(zone.getCorner1());
+                return ZoneLoc.toString(zone.getCorner1());
             } else {
                 return "unknown";
             }
@@ -98,7 +98,7 @@ public class RegenPlaceholder extends PlaceholderExpansion {
             String zoneName = params.substring("corner2_".length());
             RegenZone zone = RegenSystemAPI.get().getZone(zoneName);
             if (zone != null) {
-                return RegenLocation.toString(zone.getCorner2());
+                return ZoneLoc.toString(zone.getCorner2());
             } else {
                 return "unknown";
             }

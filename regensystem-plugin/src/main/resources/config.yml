@@ -10,3 +10,7 @@ debug: false
 
 # Prefix shown in all messages sent by the plugin
 prefix: "&6[RegenSystem] &r"
+
+updates:
+  check-interval: 12 # hours (12h)
+  notify-admins: true

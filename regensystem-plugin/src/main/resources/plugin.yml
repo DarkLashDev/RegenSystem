@@ -58,3 +58,6 @@ permissions:
   regensystem.update:
     description: Receive an update message on connection
     default: op
+  regensystem.flag:
+    description: Manage flags
+    default: op

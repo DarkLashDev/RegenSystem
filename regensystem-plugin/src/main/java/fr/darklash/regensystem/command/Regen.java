@@ -3,10 +3,8 @@ package fr.darklash.regensystem.command;
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.RegenSystemAPI;
 import fr.darklash.regensystem.api.zone.RegenZone;
-import fr.darklash.regensystem.util.Key;
-import fr.darklash.regensystem.util.Util;
-import fr.darklash.regensystem.util.Zone;
-import fr.darklash.regensystem.util.RegenLocation;
+import fr.darklash.regensystem.api.zone.RegenZoneFlag;
+import fr.darklash.regensystem.util.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -20,13 +18,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class Regen implements CommandExecutor, TabCompleter {
 
     private final Map<Player, org.bukkit.Location[]> selections = new HashMap<>();
     private static final List<String> SUBCOMMANDS = List.of(
             "pos1", "pos2", "save", "reload", "delete", "snapshot", "wand",
-            "enable", "disable", "menu"
+            "enable", "disable", "menu", "help", "flag"
     );
 
     @Override
@@ -111,14 +110,15 @@ public class Regen implements CommandExecutor, TabCompleter {
                 }
 
                 FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
-                config.set("zones." + zoneName + ".pos1", RegenLocation.toString(pos1));
-                config.set("zones." + zoneName + ".pos2", RegenLocation.toString(pos2));
+                config.set("zones." + zoneName + ".pos1", ZoneLoc.toString(pos1));
+                config.set("zones." + zoneName + ".pos2", ZoneLoc.toString(pos2));
                 config.set("zones." + zoneName + ".regenDelay", delay);
                 config.set("zones." + zoneName + ".enabled", true);
                 RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
 
                 RegenZone zone = new Zone(zoneName, pos1, pos2);
                 zone.save();
+                zone.saveFlags();
                 RegenSystemAPI.get().addZone(zone);
 
                 Util.send(player, "&eZone &6" + zoneName + " &esaved with a regeneration delay of &b" + delay + " &esec.");
@@ -268,12 +268,127 @@ public class Regen implements CommandExecutor, TabCompleter {
                 }
             }
             case "menu" -> {
-                if (!player.hasPermission("regensystem.regensystem.menu")) {
+                if (!player.hasPermission("regensystem.menu")) {
                     Util.send(player, "&cYou don't have permission to use this command.");
                     return true;
                 }
 
                 RegenSystem.getInstance().getMenuManager().open(player);
+            }
+            case "help" -> {
+                int page = 1;
+                if (args.length >= 2) {
+                    try {
+                        page = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException ignored) {
+                        Util.send(player, "&cInvalid page number.");
+                        return true;
+                    }
+                }
+
+                // List of help pages (EN only)
+                List<String[]> helpPages = List.of(
+                        new String[] {
+                                "&8&l&m--------------------------",
+                                "&6&lRegenSystem &7» &fHelp (1/3)",
+                                "",
+                                "&e/regen pos1 &7- Set the first corner of the zone at your location.",
+                                "&e/regen pos2 &7- Set the second corner of the zone at your location.",
+                                "&e/regen save <name> [delay] &7- Save a new zone with an optional delay.",
+                                "&e/regen reload [zone] &7- Reload one or all zones.",
+                                "&e/regen delete <name> &7- Delete a zone and its stored data.",
+                                "&8&l&m--------------------------"
+                        },
+                        new String[] {
+                                "&8&l&m--------------------------",
+                                "&6&lRegenSystem &7» &fHelp (2/3)",
+                                "",
+                                "&e/regen snapshot <name> &7- Update the stored state of a zone.",
+                                "&e/regen wand &7- Receive a diamond axe for selection.",
+                                "&e/regen enable <all|zone> &7- Enable regen globally or for a zone.",
+                                "&e/regen disable <all|zone> &7- Disable regen globally or for a zone.",
+                                "&e/regen menu &7- Open the interactive menu.",
+                                "&e/regen help [page] &7- Show this help menu.",
+                                "&8&l&m--------------------------"
+                        },
+                        new String[] {
+                                "&8&l&m--------------------------",
+                                "&6&lRegenSystem &7» &fHelp (3/3)",
+                                "",
+                                "&e/regen flag <zone> <flag> <on|off> &7- Enables or disables flags for a zone.",
+                                "&8&l&m--------------------------"
+                        }
+                );
+
+                if (page <= 0 || page > helpPages.size()) {
+                    Util.send(player, "&cInvalid page. &7(1 - " + helpPages.size() + ")");
+                    return true;
+                }
+
+                for (String line : helpPages.get(page - 1)) {
+                    player.sendMessage(Util.getPrefix().append(Util.legacy(line)));
+                }
+            }
+            case "flag" -> {
+                if (!player.hasPermission("regensystem.flag")) {
+                    Util.send(player, "&cYou don't have permission to manage flags.");
+                    return true;
+                }
+
+                if (args.length == 1) {
+                    // Affiche tous les flags avec leur description (sans zone)
+                    player.sendMessage(Util.getPrefix().append(Util.legacy("&6&lList of available flags :")));
+                    for (RegenZoneFlag flag : RegenZoneFlag.values()) {
+                        player.sendMessage(Util.getPrefix().append(
+                                Util.legacy(" &e" + flag.name() + " &7- &f" + flag.getDescription())
+                        ));
+                    }
+                    return true;
+                }
+
+                String zoneName = args[1];
+                RegenZone zone = RegenSystemAPI.get().getZone(zoneName);
+
+                if (zone == null) {
+                    Util.send(player, "&cZone &4'" + zoneName + "' &cnot found.");
+                    return true;
+                }
+
+                if (args.length == 2) {
+                    // Affiche tous les flags de la zone avec leur état et description
+                    player.sendMessage(Util.getPrefix().append(Util.legacy("&6&lFlags for zone &b" + zoneName)));
+                    for (RegenZoneFlag flag : RegenZoneFlag.values()) {
+                        boolean value = false;
+                        value = zone.hasFlag(flag);
+                        String status = value ? "&a✅" : "&c❌";
+                        player.sendMessage(Util.getPrefix().append(
+                                Util.legacy(" &e" + flag.name() + " &7- " + status + " &f" + flag.getDescription())
+                        ));
+                    }
+                    return true;
+                }
+
+                if (args.length < 4) {
+                    Util.send(player, "&cUse : /regen flag <zone> <flag> <on|off>");
+                    return true;
+                }
+
+                RegenZoneFlag flag = RegenZoneFlag.fromString(args[2]);
+                if (flag == null) {
+                    Util.send(player, "&cUnknown flag : &4" + args[2]);
+                    return true;
+                }
+
+                boolean value;
+                if (args[3].equalsIgnoreCase("on") || args[3].equalsIgnoreCase("true")) value = true;
+                else if (args[3].equalsIgnoreCase("off") || args[3].equalsIgnoreCase("false")) value = false;
+                else {
+                    Util.send(player, "&cInvalid value : use &6on/off &cor &6true/false");
+                    return true;
+                }
+
+                zone.setFlag(flag, value);
+                Util.send(player, "&eFlag &6" + flag.name() + " &efor zone &b" + zoneName + " &eset to &a" + value);
             }
             default -> Util.send(player, "&cUnknown command.");
         }
@@ -284,13 +399,28 @@ public class Regen implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
         if (args.length == 1) {
-            List<String> result = new ArrayList<>();
-            for (String sub : SUBCOMMANDS) {
-                if (sub.toLowerCase().startsWith(args[0].toLowerCase())) {
-                    result.add(sub);
-                }
-            }
-            return result;
+            return SUBCOMMANDS.stream()
+                    .filter(sub -> sub.toLowerCase().startsWith(args[0].toLowerCase()))
+                    .toList();
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("flag")) {
+            return RegenSystemAPI.get().getZoneNames().stream()
+                    .filter(z -> z.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .toList();
+        }
+
+        if (args.length == 3 && args[0].equalsIgnoreCase("flag")) {
+            return Arrays.stream(RegenZoneFlag.values())
+                    .map(Enum::name)
+                    .filter(f -> f.toLowerCase().startsWith(args[2].toLowerCase()))
+                    .toList();
+        }
+
+        if (args.length == 4 && args[0].equalsIgnoreCase("flag")) {
+            return Stream.of("on", "off")
+                    .filter(v -> v.startsWith(args[3].toLowerCase()))
+                    .toList();
         }
 
         if (args.length == 2) {

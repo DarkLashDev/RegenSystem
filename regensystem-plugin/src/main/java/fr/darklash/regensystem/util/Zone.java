@@ -1,15 +1,15 @@
 package fr.darklash.regensystem.util;
 
 import fr.darklash.regensystem.RegenSystem;
-import fr.darklash.regensystem.api.event.ZoneRegenerationCompleteEvent;
-import fr.darklash.regensystem.api.event.ZoneRegenerationStartEvent;
+import fr.darklash.regensystem.api.event.ZonePostRegenEvent;
+import fr.darklash.regensystem.api.event.ZonePreRegenEvent;
 import fr.darklash.regensystem.api.zone.RegenZone;
+import fr.darklash.regensystem.api.zone.RegenZoneFlag;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,12 +25,51 @@ public class Zone implements RegenZone {
     private final Location corner1;
     private final Location corner2;
     private final Map<String, BlockData> originalBlocks = new HashMap<>();
+    private final Map<RegenZoneFlag, Boolean> flags = new HashMap<>();
 
     public Zone(String name, Location corner1, Location corner2) {
         this.name = name;
         this.corner1 = corner1;
         this.corner2 = corner2;
         captureState();
+
+        for (RegenZoneFlag flag : RegenZoneFlag.values()) {
+            flags.put(flag, true);
+        }
+    }
+
+    @Override
+    public boolean hasFlag(RegenZoneFlag flag) {
+        return flags.getOrDefault(flag, false);
+    }
+
+    @Override
+    public void setFlag(RegenZoneFlag flag, boolean value) {
+        flags.put(flag, value);
+        saveFlags();
+    }
+
+    @Override
+    public Map<RegenZoneFlag, Boolean> getFlags() {
+        return new HashMap<>(flags);
+    }
+
+    @Override
+    public void loadFlags() {
+        FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
+        for (RegenZoneFlag flag : RegenZoneFlag.values()) {
+            boolean value = config.getBoolean("zones." + name + ".flags." + flag.name(), false);
+            flags.put(flag, value);
+        }
+    }
+
+    @Override
+    public void saveFlags() {
+        FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
+        for (Map.Entry<RegenZoneFlag, Boolean> entry : flags.entrySet()) {
+            config.set("zones." + name + ".flags." + entry.getKey().name(), entry.getValue());
+        }
+        RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
     }
 
     @Override
@@ -50,24 +89,12 @@ public class Zone implements RegenZone {
 
     @Override
     public void regenerate() {
+        ZonePreRegenEvent preEvent = new ZonePreRegenEvent(this);
+        Bukkit.getPluginManager().callEvent(preEvent);
+        if (preEvent.isCancelled()) return;
+
         World world = corner1.getWorld();
         if (world == null) return;
-
-        for (Player player : world.getPlayers()) {
-            if (!contains(player.getLocation())) continue;
-
-            ZoneRegenerationStartEvent event = new ZoneRegenerationStartEvent(name, player);
-            Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled()) {
-                return;
-            }
-        }
-
-        ZoneRegenerationStartEvent globalEvent = new ZoneRegenerationStartEvent(name, null);
-        Bukkit.getPluginManager().callEvent(globalEvent);
-        if (globalEvent.isCancelled()) {
-            return;
-        }
 
         int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
         int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
@@ -131,7 +158,8 @@ public class Zone implements RegenZone {
             changedBlocks++;
         }
 
-        Bukkit.getPluginManager().callEvent(new ZoneRegenerationCompleteEvent(name));
+        ZonePostRegenEvent postEvent = new ZonePostRegenEvent(this);
+        Bukkit.getPluginManager().callEvent(postEvent);
     }
 
     @Override

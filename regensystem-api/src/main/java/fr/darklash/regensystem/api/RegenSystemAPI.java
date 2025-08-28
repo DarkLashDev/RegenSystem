@@ -4,9 +4,9 @@ import fr.darklash.regensystem.api.zone.RegenZoneManager;
 
 /**
  * Main access point to the RegenSystem API.
- *
- * This class provides access to the loaded implementation of {@link RegenZoneManager}.
- * It is intended to be used by other plugins that depend on RegenSystem.
+ * <p>
+ * Provides access to the loaded {@link RegenZoneManager} implementation.
+ * Other plugins can use this API to manage zones or retrieve zone information.
  */
 public final class RegenSystemAPI {
 
@@ -26,16 +26,16 @@ public final class RegenSystemAPI {
     }
 
     /**
-     * Sets the API implementation. This should only be called by the plugin itself.
+     * Sets the API implementation. This should only be called internally by RegenSystem.
      *
-     * @param implementation the implementation of the API
+     * @param impl the implementation of the API
      * @throws IllegalStateException if the API has already been initialized
      */
-    public static void init(RegenZoneManager implementation) {
+    public static void init(RegenZoneManager impl) {
         if (instance != null) {
             throw new IllegalStateException("RegenSystem API has already been initialized.");
         }
-        instance = implementation;
+        instance = impl;
     }
 
     private RegenSystemAPI() {

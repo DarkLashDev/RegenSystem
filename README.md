@@ -27,19 +27,18 @@ Learn how to interact with the plugin through custom events and clean interfaces
 
 ### ✅ Commands
 
-| Command                        | Description                                                                 |
-|-------------------------------|-----------------------------------------------------------------------------|
-| `/regen pos1`                 | Set the first corner of the zone at your current location.                 |
-| `/regen pos2`                 | Set the second corner of the zone at your current location.                |
-| `/regen save <name> [delay]`  | Save a new zone with an optional regen delay in seconds.                   |
-| `/regen reload`               | Reload all zones and restart regen tasks.                                  |
-| `/regen delete <name>`        | Delete a zone and its stored data.                                         |
-| `/regen snapshot <name>`      | Update the stored state of a zone with the current blocks.                 |
-| `/regen wand`                 | Receive a diamond axe to select pos1/pos2 with left/right click.           |
-| `/regen enable <all\name>`   | Enable regen globally or for a specific zone.                              |
-| `/regen disable <all\name>`  | Disable regen globally or for a specific zone.                             |
-| `/regen menu`                | Opens the menu to modify options                                    
-|
+| Command                        | Description                                                             |
+|-------------------------------|-------------------------------------------------------------------------|
+| `/regen pos1`                 | Set the first corner of the zone at your current location.              |
+| `/regen pos2`                 | Set the second corner of the zone at your current location.             |
+| `/regen save <name> [delay]`  | Save a new zone with an optional regen delay in seconds.                |
+| `/regen reload`               | Reload all zones and restart regen tasks.                               |
+| `/regen delete <name>`        | Delete a zone and its stored data.                                      |
+| `/regen snapshot <name>`      | Update the stored state of a zone with the current blocks.              |
+| `/regen wand`                 | Receive a diamond axe to select pos1/pos2 with left/right click.        |
+| `/regen enable <all\name>`   | Enable regen globally or for a specific zone.                           |
+| `/regen disable <all\name>`  | Disable regen globally or for a specific zone.                          |
+| `/regen menu`                | Opens the menu to modify options                                        |
 
 ---
 

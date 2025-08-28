@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.darklash.regensystem.api.RegenSystemAPI;
 import fr.darklash.regensystem.command.Regen;
+import fr.darklash.regensystem.listener.Flag;
 import fr.darklash.regensystem.listener.Menu;
 import fr.darklash.regensystem.listener.Session;
 import fr.darklash.regensystem.listener.ZoneSelector;
@@ -14,12 +15,17 @@ import fr.darklash.regensystem.manager.FileManager;
 import fr.darklash.regensystem.manager.MenuManager;
 import fr.darklash.regensystem.manager.ZoneManager;
 import fr.darklash.regensystem.util.RegenPlaceholder;
+import fr.darklash.regensystem.util.Util;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -77,7 +83,9 @@ public final class RegenSystem extends JavaPlugin {
         registerListeners(getServer().getPluginManager());
         registerPlaceholders();
 
-        checkUpdate();
+        long hours = getConfig().getLong("updates.check-interval", 12);
+        long interval = hours * 3600;
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::checkUpdate, 0L, interval * 20L);
 
         int pluginID = 26569;
         Metrics metrics = new Metrics(this, pluginID);
@@ -145,7 +153,8 @@ public final class RegenSystem extends JavaPlugin {
         List<Listener> events = List.of(
                 zoneSelectorListener,
                 menu,
-                new Session()
+                new Session(),
+                new Flag()
         );
 
         events.forEach(listener -> pm.registerEvents(listener, this));
@@ -192,9 +201,9 @@ public final class RegenSystem extends JavaPlugin {
 
                 if (compareVersions(latest, current) > 0) {
                     getLogger().warning("⚠ A new version of RegenSystem is available : " + latest + " (you are on " + current + ")");
-                    if (latestVersion.has("changelog")) {
-                        String changelog = latestVersion.get("changelog").getAsString();
-                        getLogger().info("📄 Changelog for " + latest + ":\n" + changelog);
+
+                    if (getConfig().getBoolean("updates.notify-admins", true)) {
+                        Bukkit.getScheduler().runTask(this, () -> notifyAdmins(latest, current));
                     }
                 } else {
                     getLogger().info("✅ RegenSystem is up to date.");
@@ -228,6 +237,24 @@ public final class RegenSystem extends JavaPlugin {
             }
         }
         return latestVersion;
+    }
+
+    public void notifyAdmins(String latest, String current) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.isOp() || player.hasPermission("regensystem.update")) {
+                Util.send(player, "&eA new version is available : &a" + latest + "&e (you are using &c" + current + "&e).");
+
+                Component clickable = Util.getPrefix()
+                        .append(Component.text("→ Click here to download : ")
+                                .color(net.kyori.adventure.text.format.NamedTextColor.GRAY))
+                        .append(Component.text("https://modrinth.com/plugin/regensystem")
+                                .color(net.kyori.adventure.text.format.NamedTextColor.AQUA)
+                                .clickEvent(ClickEvent.openUrl("https://modrinth.com/plugin/regensystem"))
+                                .hoverEvent(HoverEvent.showText(Util.legacy("&7Click to open Modrinth in your browser"))));
+
+                player.sendMessage(clickable);
+            }
+        }
     }
 
     private void registerPlaceholders() {

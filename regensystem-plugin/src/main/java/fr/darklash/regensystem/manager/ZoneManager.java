@@ -1,11 +1,14 @@
 package fr.darklash.regensystem.manager;
 
 import fr.darklash.regensystem.RegenSystem;
+import fr.darklash.regensystem.api.event.ZoneCreateEvent;
+import fr.darklash.regensystem.api.event.ZoneDeleteEvent;
+import fr.darklash.regensystem.api.event.ZoneReloadEvent;
 import fr.darklash.regensystem.api.zone.RegenZoneManager;
 import fr.darklash.regensystem.api.zone.RegenZone;
 import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Zone;
-import fr.darklash.regensystem.util.RegenLocation;
+import fr.darklash.regensystem.util.ZoneLoc;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -52,12 +55,13 @@ public class ZoneManager implements RegenZoneManager {
                 continue;
             }
 
-            Zone zone = new Zone(
+            RegenZone zone = new Zone(
                     zoneName,
-                    RegenLocation.fromString(rawPos1),
-                    RegenLocation.fromString(rawPos2)
+                    ZoneLoc.fromString(rawPos1),
+                    ZoneLoc.fromString(rawPos2)
             );
             zone.load();
+            zone.loadFlags();
 
             zones.put(zoneName, zone);
 
@@ -89,48 +93,71 @@ public class ZoneManager implements RegenZoneManager {
 
     @Override
     public void reloadZone(String name) {
+        RegenZone oldZone = zones.get(name);
+
+        ZoneReloadEvent event = new ZoneReloadEvent(oldZone);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
+
         FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
         ConfigurationSection section = config.getConfigurationSection("zones." + name);
         if (section == null) return;
 
         String rawPos1 = section.getString("pos1");
         String rawPos2 = section.getString("pos2");
-
         if (rawPos1 == null || rawPos2 == null) return;
 
-        // Stop l'ancienne tâche si elle existe
+        // Stop anciennes tâches
         BukkitTask oldTask = scheduledTasks.remove(name);
         if (oldTask != null) oldTask.cancel();
         BukkitTask oldTimer = timerTasks.remove(name);
         if (oldTimer != null) oldTimer.cancel();
 
-        Zone zone = new Zone(name, RegenLocation.fromString(rawPos1), RegenLocation.fromString(rawPos2));
-        zone.load();
+        RegenZone newZone = new Zone(name, ZoneLoc.fromString(rawPos1), ZoneLoc.fromString(rawPos2));
+        newZone.load();
+        newZone.loadFlags();
 
-        zones.put(name, zone);
+        zones.put(name, newZone);
 
         if (!config.getBoolean("global.regen-enabled", true)) return;
         if (!config.getBoolean("zones." + name + ".enabled", true)) return;
 
         int delay = section.getInt("regenDelay", 60);
-        startZoneTask(zone, delay);
+        startZoneTask(newZone, delay);
     }
 
     @Override
     public void deleteZone(String name) {
-        RegenZone zone = zones.remove(name);
-        if (zone != null) {
-            BukkitTask task = scheduledTasks.remove(name);
-            if (task != null) task.cancel();
-            BukkitTask timer = timerTasks.remove(name);
-            if (timer != null) timer.cancel();
-            zoneTimers.remove(name);
-        }
+        RegenZone zone = zones.get(name);
+        if (zone == null) return;
+
+        ZoneDeleteEvent event = new ZoneDeleteEvent(zone);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
+
+        zones.remove(name);
+
+        BukkitTask task = scheduledTasks.remove(name);
+        if (task != null) task.cancel();
+
+        BukkitTask timer = timerTasks.remove(name);
+        if (timer != null) timer.cancel();
+
+        zoneTimers.remove(name);
     }
 
     @Override
     public void addZone(RegenZone zone) {
+        ZoneCreateEvent event = new ZoneCreateEvent(zone);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
+
         zones.put(zone.getName(), zone);
+
+        Bukkit.getPluginManager().callEvent(new ZoneCreateEvent(zone));
 
         FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
 
