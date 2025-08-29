@@ -1,15 +1,19 @@
 package fr.darklash.regensystem.api.zone;
 
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.EntityType;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
  * Represents a regenerable zone in the world.
  * <p>
  * A zone is defined by two corners and contains block data,
- * flags, and regeneration logic.
+ * flags, and regeneration logic. Developers can attach custom
+ * conditions and actions to zones using the API.
  */
 public interface RegenZone {
 
@@ -131,4 +135,81 @@ public interface RegenZone {
      * @return a map of location strings to serialized block data strings
      */
     Map<String, String> getOriginalBlockData();
+
+    /**
+     * Teleports all players currently inside this zone to a safe location outside of it.
+     */
+    void teleportPlayersOut();
+
+    /**
+     * Removes all entities of the specified types within this zone.
+     *
+     * @param types the entity types to remove (e.g., EntityType.ZOMBIE)
+     */
+    void clearEntities(EntityType... types);
+
+    /**
+     * Displays the borders of this zone using particles for a specified duration.
+     *
+     * @param particle the type of particle to display
+     * @param duration how long to show the particle effect
+     */
+    void highlight(Particle particle, Duration duration);
+
+    /**
+     * Counts the number of players currently inside this zone.
+     *
+     * @return the number of players inside the zone
+     */
+    int countPlayersInside();
+
+    /**
+     * Converts this zone into a JSON string.
+     *
+     * @return the JSON representation of this zone
+     */
+    String toJson();
+
+    /**
+     * Creates a zone from a JSON string.
+     *
+     * @param json the JSON representation of a zone
+     * @return a new RegenZone instance
+     */
+    static RegenZone fromJson(String json) {
+        throw new UnsupportedOperationException("Implement in concrete class");
+    }
+
+    /**
+     * Adds a condition to this zone.
+     * <p>
+     * Conditions are tested when players interact with or enter the zone.
+     * If a condition returns false, associated actions may not execute.
+     *
+     * @param condition the {@link RegenZoneCondition} to add
+     */
+    void addCondition(RegenZoneCondition condition);
+
+    /**
+     * Adds an action to this zone.
+     * <p>
+     * Actions are executed when conditions are satisfied or specific events occur.
+     *
+     * @param action the {@link RegenZoneAction} to add
+     */
+    void addAction(RegenZoneAction action);
+
+    /**
+     * Removes a previously added condition from this zone.
+     *
+     * @param condition the {@link RegenZoneCondition} to remove
+     */
+    void removeCondition(RegenZoneCondition condition);
+
+    /**
+     * Removes a previously added action from this zone.
+     *
+     * @param action the {@link RegenZoneAction} to remove
+     */
+    void removeAction(RegenZoneAction action);
 }

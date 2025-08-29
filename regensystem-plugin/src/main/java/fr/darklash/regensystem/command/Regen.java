@@ -30,6 +30,7 @@ public class Regen implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
+        ZoneService service = new ZoneService(RegenSystem.getInstance());
 
         if (!(sender instanceof Player player)) {
             Util.send((Player) sender, "Order reserved for players.");
@@ -77,7 +78,7 @@ public class Regen implements CommandExecutor, TabCompleter {
                 }
 
                 Location[] locsCommand = selections.get(player);
-                Location[] locsHache = RegenSystem.getInstance().getZoneSelectorListener().getSelections().get(player);
+                Location[] locsHache = RegenSystem.getInstance().getSelectorListener().getSelections().get(player);
 
                 Location pos1 = null;
                 Location pos2 = null;
@@ -109,17 +110,7 @@ public class Regen implements CommandExecutor, TabCompleter {
                     }
                 }
 
-                FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
-                config.set("zones." + zoneName + ".pos1", ZoneLoc.toString(pos1));
-                config.set("zones." + zoneName + ".pos2", ZoneLoc.toString(pos2));
-                config.set("zones." + zoneName + ".regenDelay", delay);
-                config.set("zones." + zoneName + ".enabled", true);
-                RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
-
-                RegenZone zone = new Zone(zoneName, pos1, pos2);
-                zone.save();
-                zone.saveFlags();
-                RegenSystemAPI.get().addZone(zone);
+                service.createZone(zoneName, pos1, pos2, delay);
 
                 Util.send(player, "&eZone &6" + zoneName + " &esaved with a regeneration delay of &b" + delay + " &esec.");
             }
@@ -156,10 +147,8 @@ public class Regen implements CommandExecutor, TabCompleter {
                 String zoneName = args[1];
 
                 if (RegenSystem.getInstance().getFileManager().get(Key.File.ZONE).contains("zones." + zoneName)) {
-                    RegenSystem.getInstance().getFileManager().get(Key.File.ZONE).set("zones." + zoneName, null);
-                    RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
 
-                    RegenSystemAPI.get().deleteZone(zoneName);
+                    service.deleteZone(zoneName);
 
                     Util.send(player, "&eZone &6'" + zoneName + "' &edeleted !");
                 } else {
@@ -185,8 +174,8 @@ public class Regen implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
-                zone.captureState();
-                zone.save();
+                service.snapshotZone(zone);
+
                 Util.send(player, "&aSnapshot of recorded zone '&2" + zoneName + "&a'");
             }
             case "wand" -> {
@@ -221,20 +210,16 @@ public class Regen implements CommandExecutor, TabCompleter {
                 FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
 
                 if (args[1].equalsIgnoreCase("all")) {
-                    config.set("global.regen-enabled", true);
-                    RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
+                    service.enableAllZones();
                     Util.send(player, "&aRegeneration activated for all zones !");
-                    RegenSystemAPI.get().loadZones();
                 } else {
                     String zone = args[1];
                     if (!config.contains("zones." + zone)) {
                         Util.send(player, "&cUnknown zone.");
                         return true;
                     }
-                    config.set("zones." + zone + ".enabled", true);
-                    RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
+                    service.enableZone(zone);
                     Util.send(player, "&aZone &2" + zone + " &aactivated !");
-                    RegenSystemAPI.get().loadZones();
                 }
             }
             case "disable" -> {
@@ -251,20 +236,16 @@ public class Regen implements CommandExecutor, TabCompleter {
                 FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
 
                 if (args[1].equalsIgnoreCase("all")) {
-                    config.set("global.regen-enabled", false);
-                    RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
+                    service.disableAllZones();
                     Util.send(player, "&cRegeneration disabled for all zones !");
-                    RegenSystemAPI.get().loadZones();
                 } else {
                     String zone = args[1];
                     if (!config.contains("zones." + zone)) {
                         Util.send(player, "&cUnknow zone.");
                         return true;
                     }
-                    config.set("zones." + zone + ".enabled", false);
-                    RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
+                    service.disableZone(zone);
                     Util.send(player, "&cZone &4" + zone + " &cdisabled !");
-                    RegenSystemAPI.get().loadZones();
                 }
             }
             case "menu" -> {

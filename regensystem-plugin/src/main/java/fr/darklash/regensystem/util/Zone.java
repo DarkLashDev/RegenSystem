@@ -1,31 +1,44 @@
 package fr.darklash.regensystem.util;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import fr.darklash.regensystem.RegenSystem;
+import fr.darklash.regensystem.api.event.ZoneFlagChangeEvent;
 import fr.darklash.regensystem.api.event.ZonePostRegenEvent;
 import fr.darklash.regensystem.api.event.ZonePreRegenEvent;
 import fr.darklash.regensystem.api.zone.RegenZone;
+import fr.darklash.regensystem.api.zone.RegenZoneCondition;
 import fr.darklash.regensystem.api.zone.RegenZoneFlag;
+import fr.darklash.regensystem.api.zone.RegenZoneAction;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.EntityType;
 
+import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Duration;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Zone implements RegenZone {
+
+    private static final Gson gson = new Gson();
 
     private final String name;
     private final Location corner1;
     private final Location corner2;
     private final Map<String, BlockData> originalBlocks = new HashMap<>();
     private final Map<RegenZoneFlag, Boolean> flags = new HashMap<>();
+    private final List<RegenZoneCondition> conditions = new ArrayList<>();
+    private final List<RegenZoneAction> actions = new ArrayList<>();
 
     public Zone(String name, Location corner1, Location corner2) {
         this.name = name;
@@ -39,12 +52,39 @@ public class Zone implements RegenZone {
     }
 
     @Override
+    public void addCondition(RegenZoneCondition condition) {
+        conditions.add(condition);
+    }
+
+    @Override
+    public void removeCondition(RegenZoneCondition condition) {
+        conditions.remove(condition);
+    }
+
+    @Override
+    public void addAction(RegenZoneAction action) {
+        actions.add(action);
+    }
+
+    @Override
+    public void removeAction(RegenZoneAction action) {
+        actions.remove(action);
+    }
+
+    @Override
     public boolean hasFlag(RegenZoneFlag flag) {
         return flags.getOrDefault(flag, false);
     }
 
     @Override
     public void setFlag(RegenZoneFlag flag, boolean value) {
+        boolean old = flags.getOrDefault(flag, false);
+        if (old == value) return;
+
+        ZoneFlagChangeEvent flagEvent = new ZoneFlagChangeEvent(this, flag, old, value);
+        Bukkit.getPluginManager().callEvent(flagEvent);
+        if (flagEvent.isCancelled()) return;
+
         flags.put(flag, value);
         saveFlags();
     }
@@ -297,6 +337,126 @@ public class Zone implements RegenZone {
             }
         }
         return null; // Aucun endroit sûr trouvé
+    }
+
+    @Override
+    public void teleportPlayersOut() {
+        int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
+        int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
+        int minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
+        int maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
+        int minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
+        int maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
+
+        corner1.getWorld().getPlayers().stream()
+                .filter(p -> {
+                    Location loc = p.getLocation();
+                    return loc.getX() >= minX && loc.getX() <= maxX
+                            && loc.getY() >= minY && loc.getY() <= maxY
+                            && loc.getZ() >= minZ && loc.getZ() <= maxZ;
+                })
+                .forEach(p -> {
+                    Location safeLoc = findSafeLocationNearZone(corner1.getWorld(), minX, maxX, minY, maxY, minZ, maxZ);
+                    if (safeLoc != null) p.teleport(safeLoc);
+                });
+    }
+
+    @Override
+    public void clearEntities(EntityType... types) {
+        Set<EntityType> typeSet = new HashSet<>(Arrays.asList(types));
+        corner1.getWorld().getEntities().stream()
+                .filter(e -> typeSet.contains(e.getType()))
+                .filter(e -> contains(e.getLocation()))
+                .forEach(e -> e.remove());
+    }
+
+    @Override
+    public int countPlayersInside() {
+        return (int) corner1.getWorld().getPlayers().stream()
+                .filter(p -> contains(p.getLocation()))
+                .count();
+    }
+
+    @Override
+    public void highlight(Particle particle, Duration duration) {
+        Bukkit.getScheduler().runTaskTimer(RegenSystem.getInstance(), new Runnable() {
+            long endTime = System.currentTimeMillis() + duration.toMillis();
+            @Override
+            public void run() {
+                if (System.currentTimeMillis() > endTime) return;
+
+                int minX = corner1.getBlockX();
+                int maxX = corner2.getBlockX();
+                int minY = corner1.getBlockY();
+                int maxY = corner2.getBlockY();
+                int minZ = corner1.getBlockZ();
+                int maxZ = corner2.getBlockZ();
+
+                World world = corner1.getWorld();
+                // Affiche les particules sur les arêtes de la zone
+                for (int x = minX; x <= maxX; x++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        world.spawnParticle(particle, x + 0.5, y + 0.5, minZ + 0.5, 1);
+                        world.spawnParticle(particle, x + 0.5, y + 0.5, maxZ + 0.5, 1);
+                    }
+                }
+                for (int z = minZ; z <= maxZ; z++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        world.spawnParticle(particle, minX + 0.5, y + 0.5, z + 0.5, 1);
+                        world.spawnParticle(particle, maxX + 0.5, y + 0.5, z + 0.5, 1);
+                    }
+                }
+            }
+        }, 0L, 5L);
+    }
+
+    @Override
+    public String toJson() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("name", name);
+        obj.addProperty("corner1", serializeLocation(corner1));
+        obj.addProperty("corner2", serializeLocation(corner2));
+
+        // Flags
+        obj.add("flags", gson.toJsonTree(flags));
+
+        // Original blocks (simplifié en String)
+        Map<String, String> blocks = new HashMap<>();
+        originalBlocks.forEach((k, v) -> blocks.put(k, v.getAsString()));
+        obj.add("originalBlocks", gson.toJsonTree(blocks));
+
+        return gson.toJson(obj);
+    }
+
+    public static RegenZone fromJson(String json) {
+        JsonObject obj = gson.fromJson(json, JsonObject.class);
+        Location c1 = deserializeLocation(obj.get("corner1").getAsString());
+        Location c2 = deserializeLocation(obj.get("corner2").getAsString());
+        Zone zone = new Zone(obj.get("name").getAsString(), c1, c2);
+
+        Type flagMapType = new TypeToken<Map<String, Boolean>>() {}.getType();
+        Map<String, Boolean> flagsMap = gson.fromJson(obj.get("flags"), flagMapType);
+        flagsMap.forEach((k, v) -> zone.setFlag(RegenZoneFlag.valueOf(k), v));
+
+        Type blocksMapType = new TypeToken<Map<String, String>>() {}.getType();
+        Map<String, String> blocksMap = gson.fromJson(obj.get("originalBlocks"), blocksMapType);
+        blocksMap.forEach((k, v) -> zone.getOriginalBlocks().put(k, Bukkit.createBlockData(v)));
+
+        return zone;
+    }
+
+    private static String serializeLocation(Location loc) {
+        return loc.getWorld().getName() + "," + loc.getX() + "," + loc.getY() + "," + loc.getZ();
+    }
+
+    private static Location deserializeLocation(String s) {
+        String[] parts = s.split(",");
+        return new Location(
+                Bukkit.getWorld(parts[0]),
+                Double.parseDouble(parts[1]),
+                Double.parseDouble(parts[2]),
+                Double.parseDouble(parts[3])
+        );
     }
 
     @Override

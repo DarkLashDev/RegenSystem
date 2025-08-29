@@ -1,5 +1,7 @@
 package fr.darklash.regensystem.api.zone;
 
+import org.bukkit.Location;
+
 import java.util.Collection;
 import java.util.Set;
 
@@ -77,4 +79,29 @@ public interface RegenZoneManager {
      * @return true if registered, false otherwise
      */
     boolean isZoneRegistered(String name);
+
+    /**
+     * Returns all fields containing a given location.
+     *
+     * @param loc the location
+     * @return returns all fields containing a given location
+     */
+    Collection<RegenZone> getZonesContaining(Location loc);
+
+    /**
+     * Returns all fields that have an active flag.
+     *
+     * @param flag the {@link RegenZoneFlag} to check
+     * @return returns all fields that have an active flag
+     */
+    Collection<RegenZone> getZonesByFlag(RegenZoneFlag flag);
+
+    /**
+     * Returns all zones near a location within a given radius (in blocks).
+     *
+     * @param loc the location
+     * @param radius given radius (in blocks).
+     * @return returns all zones near a location within a given radius (in blocks)
+     */
+    Collection<RegenZone> getZonesNear(Location loc, int radius);
 }

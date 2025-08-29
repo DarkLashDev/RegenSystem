@@ -4,12 +4,14 @@ import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.event.ZoneCreateEvent;
 import fr.darklash.regensystem.api.event.ZoneDeleteEvent;
 import fr.darklash.regensystem.api.event.ZoneReloadEvent;
+import fr.darklash.regensystem.api.zone.RegenZoneFlag;
 import fr.darklash.regensystem.api.zone.RegenZoneManager;
 import fr.darklash.regensystem.api.zone.RegenZone;
 import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Zone;
 import fr.darklash.regensystem.util.ZoneLoc;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitTask;
@@ -166,6 +168,40 @@ public class ZoneManager implements RegenZoneManager {
 
         int delay = config.getInt("zones." + zone.getName() + ".regenDelay", 60);
         startZoneTask(zone, delay);
+    }
+
+    @Override
+    public Collection<RegenZone> getZonesContaining(Location loc) {
+        List<RegenZone> result = new ArrayList<>();
+        for (RegenZone zone : zones.values()) {
+            if (zone.contains(loc)) {
+                result.add(zone);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Collection<RegenZone> getZonesByFlag(RegenZoneFlag flag) {
+        List<RegenZone> result = new ArrayList<>();
+        for (RegenZone zone : zones.values()) {
+            if (zone.hasFlag(flag)) {
+                result.add(zone);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Collection<RegenZone> getZonesNear(Location loc, int radius) {
+        List<RegenZone> result = new ArrayList<>();
+        for (RegenZone zone : zones.values()) {
+            Location center = zone.getCenter();
+            if (center.getWorld().equals(loc.getWorld()) && center.distance(loc) <= radius) {
+                result.add(zone);
+            }
+        }
+        return result;
     }
 
     @Override

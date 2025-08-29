@@ -1,0 +1,20 @@
+[versions]
+lombok = "1.18.38"
+gson = "2.13.1"
+snakeyaml = "2.4"
+bstats = "3.1.0"
+paper = "1.20.6-R0.1-SNAPSHOT"
+placeholderapi = "2.11.6"
+
+[libraries]
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+paper = { module = "io.papermc.paper:paper-api", version.ref = "paper"}
+placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi"}
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "9.0.2" }
+runPaper = { id = "xyz.jpenilla.run-paper", version = "2.3.1" }
+modrinth = { id = "com.modrinth.minotaur", version = "2.+" }

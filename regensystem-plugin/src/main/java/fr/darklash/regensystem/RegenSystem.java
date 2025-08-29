@@ -9,7 +9,7 @@ import fr.darklash.regensystem.command.Regen;
 import fr.darklash.regensystem.listener.Flag;
 import fr.darklash.regensystem.listener.Menu;
 import fr.darklash.regensystem.listener.Session;
-import fr.darklash.regensystem.listener.ZoneSelector;
+import fr.darklash.regensystem.listener.Selector;
 import fr.darklash.regensystem.manager.DatabaseManager;
 import fr.darklash.regensystem.manager.FileManager;
 import fr.darklash.regensystem.manager.MenuManager;
@@ -50,7 +50,7 @@ public final class RegenSystem extends JavaPlugin {
     private ZoneManager zoneManager;
     private MenuManager menuManager;
     private DatabaseManager databaseManager;
-    private ZoneSelector zoneSelectorListener;
+    private Selector selectorListener;
     private Menu menu;
     private RegenPlaceholder regenPlaceholder;
 
@@ -147,11 +147,11 @@ public final class RegenSystem extends JavaPlugin {
     }
 
     private void registerListeners(PluginManager pm) {
-        this.zoneSelectorListener = new ZoneSelector();
+        this.selectorListener = new Selector();
         this.menu = new Menu(menuManager);
 
         List<Listener> events = List.of(
-                zoneSelectorListener,
+                selectorListener,
                 menu,
                 new Session(),
                 new Flag()
