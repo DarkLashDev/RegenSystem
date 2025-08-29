@@ -45,7 +45,6 @@ public final class RegenSystem extends JavaPlugin {
 
     @Getter
     private static RegenSystem instance;
-
     private FileManager fileManager;
     private ZoneManager zoneManager;
     private MenuManager menuManager;
