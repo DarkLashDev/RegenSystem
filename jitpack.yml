@@ -2,4 +2,4 @@ jdk:
   - openjdk21
 
 install:
-  - ./gradlew :regensystem-api:publishToMavenLocal
+  - ./gradlew clean :regensystem-api:publishToMavenLocal

@@ -24,7 +24,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            groupId = 'com.github.DarkLash1'
+            groupId = 'fr.darklash.regensystem'
             artifactId = 'regensystem-api'
             version = rootProject.version
         }
