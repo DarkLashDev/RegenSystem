@@ -4,6 +4,6 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'RegenSystem'
+rootProject.name = "RegenSystem"
 
 include("regensystem-api", "regensystem-plugin")

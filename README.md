@@ -1,8 +1,10 @@
 # RegenSystem 
 
-[![](https://img.shields.io/modrinth/dt/regensystem?label=Downloads&color=brightgreen&style=flat-square)](https://modrinth.com/plugin/regensystem)
 [![Modrinth](https://img.shields.io/modrinth/v/regensystem?color=green&label=Modrinth&logo=modrinth)](https://modrinth.com/plugin/regensystem)
-[![License: DL Group Public License](https://img.shields.io/badge/license-DLGPL--RegenSystem-orange.svg)](https://github.com/DarkLash1/RegenSystem/blob/main/LICENSE)
+[![Downloads](https://img.shields.io/modrinth/dt/regensystem?label=downloads&color=brightgreen&style=flat-square)](https://modrinth.com/plugin/regensystem)
+[![JitPack version](https://jitpack.io/v/DarkLash1/RegenSystem.svg)](https://jitpack.io/#DarkLash1/RegenSystem)
+![Monthly download statistics](https://jitpack.io/v/DarkLash1/RegenSystem.svg/month.svg)
+[![License : DL Group Public License](https://img.shields.io/badge/License-DLGPL--RegenSystem-orange.svg)](https://github.com/DarkLash1/RegenSystem/blob/main/LICENSE)
 
 A powerful, flexible block regeneration system designed for PvP Box, survival zones, or mining zones. Define cuboid areas and let them regenerate automatically over time – all with a single command.
 

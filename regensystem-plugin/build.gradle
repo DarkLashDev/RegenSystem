@@ -10,7 +10,7 @@ repositories {
     maven { url = "https://oss.sonatype.org/content/groups/public/" }
     maven { url = "https://repo.dmulloy2.net/repository/public/" }
     maven { url = "https://repo.codemc.io/repository/maven-public/" }
-    maven { url = 'https://repo.extendedclip.com/releases/' }
+    maven { url = "https://repo.extendedclip.com/releases/" }
     maven { url = "https://repo.bstats.org" }
 }
 
@@ -32,22 +32,14 @@ tasks {
     }
 }
 
-def targetJavaVersion = 21
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    withSourcesJar()
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release.set(targetJavaVersion)
-    }
+    options.encoding = "UTF-8"
+    options.release.set(21)
 }
 
 tasks.shadowJar {
@@ -67,41 +59,19 @@ tasks.jar {
 processResources {
     def props = [version: rootProject.version]
     inputs.properties props
-    filteringCharset 'UTF-8'
-    filesMatching('plugin.yml') {
+    filteringCharset = "UTF-8"
+    filesMatching("plugin.yml") {
         expand props
     }
 }
 
 modrinth {
     token.set(System.getenv("MODRINTH_TOKEN") ?: project.findProperty("modrinthToken")?.toString())
-
     projectId.set("regensystem")
     versionNumber.set(rootProject.version.toString())
     versionName.set("RegenSystem ${rootProject.version}")
-
-    versionType.set("release") // release | beta | alpha
-
+    versionType.set("release")
     uploadFile.set(tasks.named("shadowJar").flatMap { it.archiveFile })
-
-    gameVersions.set([
-            "1.20",
-            "1.20.1",
-            "1.20.2",
-            "1.20.3",
-            "1.20.4",
-            "1.20.5",
-            "1.20.6",
-            "1.21",
-            "1.21.1",
-            "1.21.2",
-            "1.21.3",
-            "1.21.4",
-            "1.21.5",
-            "1.21.6",
-            "1.21.7",
-            "1.21.8"
-    ])
-
+    gameVersions.set([ "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8" ])
     loaders.set(["bukkit", "paper"])
 }
