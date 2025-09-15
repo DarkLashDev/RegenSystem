@@ -68,7 +68,7 @@ public class Regen implements CommandExecutor, TabCompleter {
             }
             case "save" -> {
                 if (args.length < 2) {
-                    Util.send(player, "&cUse : /regen save <name> [delay]");
+                    Util.send(player, "&cUse : /regen save <name> [delay] [f:flag=value]...");
                     return true;
                 }
 
@@ -97,22 +97,54 @@ public class Regen implements CommandExecutor, TabCompleter {
                 String zoneName = args[1];
 
                 int delay = 60;
-                if (args.length >= 3) {
+                int argIndex = 2;
+
+                if (args.length > 2) {
                     try {
                         delay = Integer.parseInt(args[2]);
                         if (delay <= 0) {
                             Util.send(player, "&cThe delay must be a positive integer.");
                             return true;
                         }
-                    } catch (NumberFormatException e) {
-                        Util.send(player, "&cInvalid delay, must be an integer.");
-                        return true;
+                        argIndex = 3;
+                    } catch (NumberFormatException ignored) {
+
                     }
                 }
 
                 service.createZone(zoneName, pos1, pos2, delay);
 
+                for (int i = argIndex; i < args.length; i++) {
+                    String arg = args[i];
+                    if (arg.startsWith("f:")) {
+                        String[] split = arg.substring(2).split("=");
+                        if (split.length == 2) {
+                            RegenZoneFlag flag = RegenZoneFlag.fromString(split[0]);
+                            if (flag == null) {
+                                Util.send(player, "&cUnknown flag : &4" + split[0]);
+                                continue;
+                            }
+
+                            boolean value;
+                            if (split[1].equalsIgnoreCase("true") || split[1].equalsIgnoreCase("on")) {
+                                value = true;
+                            } else if (split[1].equalsIgnoreCase("false") || split[1].equalsIgnoreCase("off")) {
+                                value = false;
+                            } else {
+                                Util.send(player, "&cInvalid flag value for &6" + split[0] + " &c: use true/false or on/off");
+                                continue;
+                            }
+
+                            RegenSystemAPI.get().getZone(zoneName).setFlag(flag, value);
+                            Util.send(player, "&eFlag &6" + flag.name() + " &eset to &a" + value);
+                        }
+                    }
+                }
+
                 Util.send(player, "&eZone &6" + zoneName + " &esaved with a regeneration delay of &b" + delay + " &esec.");
+
+                selections.remove(player);
+                RegenSystem.getInstance().getSelectorListener().getSelections().remove(player);
             }
             case "reload" -> {
                 if (!player.hasPermission("regensystem.reload")) {
@@ -267,7 +299,6 @@ public class Regen implements CommandExecutor, TabCompleter {
                     }
                 }
 
-                // List of help pages (EN only)
                 List<String[]> helpPages = List.of(
                         new String[] {
                                 "&8&l&m--------------------------",
@@ -396,6 +427,33 @@ public class Regen implements CommandExecutor, TabCompleter {
                     .map(Enum::name)
                     .filter(f -> f.toLowerCase().startsWith(args[2].toLowerCase()))
                     .toList();
+        }
+
+        if (args[0].equalsIgnoreCase("save")) {
+            if (args.length >= 3) {
+                String lastArg = args[args.length - 1];
+
+                if (lastArg.startsWith("f:") && !lastArg.contains("=")) {
+                    return Arrays.stream(RegenZoneFlag.values())
+                            .map(flag -> "f:" + flag.name() + "=")
+                            .filter(s -> s.toLowerCase().startsWith(lastArg.toLowerCase()))
+                            .toList();
+                }
+
+                if (lastArg.startsWith("f:") && lastArg.contains("=")) {
+                    String prefix = lastArg.substring(0, lastArg.indexOf('=') + 1);
+                    String afterEqual = lastArg.substring(lastArg.indexOf('=') + 1).toLowerCase();
+
+                    return Stream.of("true", "false", "on", "off")
+                            .filter(v -> v.startsWith(afterEqual))
+                            .map(v -> prefix + v)
+                            .toList();
+                }
+
+                if (!lastArg.startsWith("f:")) {
+                    return List.of("f:");
+                }
+            }
         }
 
         if (args.length == 4 && args[0].equalsIgnoreCase("flag")) {

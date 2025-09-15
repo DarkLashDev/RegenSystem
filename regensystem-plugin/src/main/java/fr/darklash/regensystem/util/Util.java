@@ -16,7 +16,7 @@ public class Util {
     private static final Map<String, String> CODES = new LinkedHashMap<>();
 
     static {
-        // Couleurs
+        // Colors
         CODES.put("&0", "<black>");
         CODES.put("&1", "<dark_blue>");
         CODES.put("&2", "<dark_green>");

@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +75,7 @@ public final class RegenSystem extends JavaPlugin {
         RegenSystemAPI.init(zoneManager);
 
         initManagers();
-        connectDatabase();
+        databaseManager.connect();
         zoneManager.loadZones();
         registerCommands();
         registerListeners(getServer().getPluginManager());
@@ -104,28 +103,14 @@ public final class RegenSystem extends JavaPlugin {
     }
 
     private void initManagers() {
-        this.fileManager = new FileManager(this);
-        this.menuManager = new MenuManager();
-        this.databaseManager = new DatabaseManager();
-    }
-
-    private void connectDatabase() {
-        try {
-            this.databaseManager.connect();
-        } catch (SQLException e) {
-            getLogger().severe("❌ Unable to connect to SQLite database!");
-            logException(e);
-        }
+        fileManager = new FileManager(this);
+        menuManager = new MenuManager();
+        databaseManager = new DatabaseManager();
     }
 
     private void disconnectDatabase() {
-        try {
-            if (databaseManager != null) {
-                databaseManager.disconnect();
-            }
-        } catch (SQLException e) {
-            getLogger().severe("❌ Error while disconnecting database!");
-            logException(e);
+        if (databaseManager != null) {
+            databaseManager.disconnect();
         }
     }
 
@@ -209,7 +194,7 @@ public final class RegenSystem extends JavaPlugin {
                 }
 
             } catch (Exception e) {
-                getLogger().warning("⚠ Failed to check for updates: " + e.getMessage());
+                getLogger().warning("⚠ Failed to check for updates : " + e.getMessage());
                 logException(e);
             }
         });
@@ -267,7 +252,7 @@ public final class RegenSystem extends JavaPlugin {
     }
 
     public void logException(Throwable t) {
-        getLogger().warning("⚠ Exception: " + t.getClass().getSimpleName() + ": " + t.getMessage());
+        getLogger().warning("⚠ Exception : " + t.getClass().getSimpleName() + " : " + t.getMessage());
         if (isDebug()) {
             for (StackTraceElement trace : t.getStackTrace()) {
                 getLogger().warning("  at " + trace);

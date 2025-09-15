@@ -13,6 +13,7 @@ commands:
   regen:
     usage: /regen <pos1|pos2|save|reload|delete|snapshot|wand|enable|disable|menu|help|flag>
     description: Regeneration zone management control
+    aliases: [rs]
 
 permissions:
   regensystem.*:
@@ -30,36 +31,47 @@ permissions:
       regensystem.menu: true
       regensystem.update: true
       regensystem.flag: true
+
   regensystem.command:
     description: Allows use of /regen command base
     default: op
+
   regensystem.pos:
     description: Allows setting pos1 and pos2
     default: op
+
   regensystem.save:
     description: Allows saving new zones
     default: op
+
   regensystem.reload:
-    description: Allows reloading all zones
+    description: Allows reloading all zones or a specific one
     default: op
+
   regensystem.delete:
     description: Allows deleting zones
     default: op
+
   regensystem.snapshot:
     description: Allows updating zone snapshots
     default: op
+
   regensystem.wand:
     description: Allows giving the selection wand
     default: op
+
   regensystem.toggle:
     description: Allows enabling/disabling zones or global regen
     default: op
+
   regensystem.menu:
-    description: Allows open menu
+    description: Allows opening the interactive menu
     default: op
+
   regensystem.update:
     description: Receive an update message on connection
     default: op
+
   regensystem.flag:
-    description: Manage flags
+    description: Manage flags (list, view, toggle)
     default: op

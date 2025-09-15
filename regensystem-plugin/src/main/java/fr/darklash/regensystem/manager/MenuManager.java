@@ -18,26 +18,24 @@ public class MenuManager {
     private static final Component TITLE = Util.legacy("RegenSystem");
 
     public MenuManager() {
-        menu = Bukkit.createInventory(null, 27, TITLE); // 27 slots (3 lignes) pour plus de place
+        menu = Bukkit.createInventory(null, 27, TITLE);
         initMenuItems();
     }
 
     private void initMenuItems() {
         menu.clear();
 
-        // 1. Remplir tout avec des fenêtres jaunes (sans nom ni lore)
         ItemStack glassPane = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glassPane.getItemMeta();
         if (glassMeta != null) {
-            glassMeta.displayName(Component.empty()); // Pas de nom
-            glassMeta.lore(List.of());                // Pas de lore
+            glassMeta.displayName(Component.empty());
+            glassMeta.lore(List.of());
             glassPane.setItemMeta(glassMeta);
         }
         for (int i = 0; i < menu.getSize(); i++) {
             menu.setItem(i, glassPane);
         }
 
-        // 2. Placer les items interactifs par-dessus
         menu.setItem(10, createItem(Material.RED_WOOL, "&cSet Position 1", List.of("&7Set first corner of the zone")));
         menu.setItem(11, createItem(Material.GREEN_WOOL, "&aSet Position 2", List.of("&7Set second corner of the zone")));
         menu.setItem(12, createItem(Material.PAPER, "&eReload Zones", List.of("&7Reload all zones configuration")));
@@ -65,7 +63,7 @@ public class MenuManager {
         if (event.getClickedInventory() == null) return;
         if (!event.getView().title().equals(TITLE)) return;
 
-        event.setCancelled(true); // Empêche de récupérer les items et mouvement
+        event.setCancelled(true);
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta()) return;
@@ -99,12 +97,9 @@ public class MenuManager {
                 player.closeInventory();
             }
             case YELLOW_STAINED_GLASS_PANE -> {
-                // Ne rien faire, garder le menu ouvert
+
             }
-            default -> {
-                player.sendMessage(Component.text("Unknown action"));
-                // Si tu veux, tu peux aussi garder le menu ouvert ici, ne pas fermer
-            }
+            default -> player.sendMessage(Component.text("Unknown action"));
         }
     }
 }

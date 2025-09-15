@@ -27,7 +27,6 @@ public class ZoneManager implements RegenZoneManager {
 
     @Override
     public void loadZones() {
-        // Annule les anciennes tâches
         for (BukkitTask task : scheduledTasks.values()) {
             task.cancel();
         }
@@ -44,7 +43,7 @@ public class ZoneManager implements RegenZoneManager {
 
         for (String zoneName : section.getKeys(false)) {
             ConfigurationSection zoneSec = section.getConfigurationSection(zoneName);
-            if (zoneSec == null) continue; // <--- Important !
+            if (zoneSec == null) continue;
 
             boolean globalEnabled = config.getBoolean("global.regen-enabled", true);
             boolean zoneEnabled = zoneSec.getBoolean("enabled", true);
@@ -110,7 +109,6 @@ public class ZoneManager implements RegenZoneManager {
         String rawPos2 = section.getString("pos2");
         if (rawPos1 == null || rawPos2 == null) return;
 
-        // Stop anciennes tâches
         BukkitTask oldTask = scheduledTasks.remove(name);
         if (oldTask != null) oldTask.cancel();
         BukkitTask oldTimer = timerTasks.remove(name);

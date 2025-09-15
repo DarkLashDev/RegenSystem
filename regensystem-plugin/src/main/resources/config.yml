@@ -1,16 +1,37 @@
 # RegenSystem - Configuration file
 # Plugin page: https://modrinth.com/plugin/regensystem
 
-# Configuration file version (used for future auto-migrations), do not modify !
-version: 2
+# -------------------------------------------------------
+# ⚠️ Configuration file version
+# - Used internally for automatic migration when the plugin updates.
+# - Do not modify unless you know what you are doing !
+# -------------------------------------------------------
+version: 3
 
-# Enables debug mode (detailed logs in console)
-# false = short logs; true = full logs (e.g., stack traces)
+# -------------------------------------------------------
+# Debug mode
+# - false = only essential logs (recommended for production).
+# - true  = full debug logs (useful for developers / bug reports).
+#   Includes stack traces and detailed information in the console.
+# -------------------------------------------------------
 debug: false
 
-# Prefix shown in all messages sent by the plugin
+# -------------------------------------------------------
+# Message prefix
+# - This text will appear in front of every message sent by the plugin.
+# - Supports Minecraft color codes (&a, &b, &c, etc.).
+# Example: "&6[RegenSystem] &r"
+# -------------------------------------------------------
 prefix: "&6[RegenSystem] &r"
 
+# -------------------------------------------------------
+# Update settings
+# -------------------------------------------------------
 updates:
+  # How often the plugin should check for updates on Modrinth.
+  # Value is in hours (default : 12h).
   check-interval: 12 # hours (12h)
+
+  # Whether administrators (with the "regensystem.update" permission)
+  # should receive a message when they join the server if a new version is available.
   notify-admins: true

@@ -29,23 +29,22 @@ Learn how to interact with the plugin through custom events and clean interfaces
 
 ### ✅ Commands
 
-| Command                        | Description                                                                 |
-|-------------------------------|-----------------------------------------------------------------------------|
-| `/regen pos1`                 | Set the first corner of the zone at your current location.                 |
-| `/regen pos2`                 | Set the second corner of the zone at your current location.                |
-| `/regen save <name> [delay]`  | Save a new zone with an optional regen delay in seconds.                   |
-| `/regen reload`               | Reload all zones and restart regen tasks.                                  |
-| `/regen delete <name>`        | Delete a zone and its stored data.                                         |
-| `/regen snapshot <name>`      | Update the stored state of a zone with the current blocks.                 |
-| `/regen wand`                 | Receive a diamond axe to select pos1/pos2 with left/right click.           |
-| `/regen enable <all\name>`   | Enable regen globally or for a specific zone.                              |
-| `/regen disable <all\name>`  | Disable regen globally or for a specific zone.                             |
-| `/regen menu`                | Opens the menu to modify options.                                    
-|
-| `/regen help`                | Show the help menu.
-|
-| `/regen flag <zone> <flag> <on\off>` | Enables or disables flags for a zone.
-|
+| Command                                        | Description                                                                |
+|------------------------------------------------|----------------------------------------------------------------------------|
+| `/regen pos1`                                  | Set the first corner of the zone at your current location.                 |
+| `/regen pos2`                                  | Set the second corner of the zone at your current location.                |
+| `/regen save <name> [delay] [f:flag=value]...` | Save a new zone with an optional regen delay (seconds) and optional flags. |
+| `/regen reload [zone]`                         | Reload all zones, or a specific one if a name is provided.                 |
+| `/regen delete <name>`                         | Delete a zone and its stored data.                                         |
+| `/regen snapshot <name>`                       | Update the stored state of a zone with the current blocks.                 |
+| `/regen wand`                                  | Receive a diamond axe to select pos1/pos2 with left/right click.           |
+| `/regen enable <all\name>`                     | Enable regen globally or for a specific zone.                              |
+| `/regen disable <all\name>`                    | Disable regen globally or for a specific zone.                             |
+| `/regen menu`                                  | Opens the menu to modify options.                                          |
+| `/regen help [page]`                           | Show the help menu (3 pages available).                                    |
+| `/regen flag`                                  | Show all available flags and their descriptions.                           |
+| `/regen flag <zone>`                           | List all flags of a specific zone with their status.                       |
+| `/regen flag <zone> <flag> <on/off>`           | Enable or disable a specific flag for a zone.                              |
 
 ---
 
@@ -82,18 +81,18 @@ To enable placeholders, simply install PlaceholderAPI – the plugin will auto-d
 
 If [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) is installed, you can use the following placeholders :
 
-| Placeholder                         | Description                                         |
-|-------------------------------------|-----------------------------------------------------|
-| `%regen_zone_count%`               | Total number of zones defined                      |
-| `%regen_regen_enabled%`            | Global regen status (`enabled` or `disabled`)      |
-| `%regen_enabled_<zone>%`           | If regen is enabled for a specific zone            |
-| `%regen_delay_<zone>%`             | Regen delay (in seconds) for a specific zone       |
-| `%regen_exists_<zone>%`            | Returns "true" if the zone exists                  |
-| `%regen_block_count_<zone>%`       | Number of original blocks in zone                  |
-| `%regen_corner1_<zone>%`           | Coordinates of the first corner of the zone        |
-| `%regen_corner2_<zone>%`           | Coordinates of the second corner of the zone       |
-| `%regen_timer_<zone>%`             | Time remaining before next regeneration (mm:ss)    |
-| `%regen_name_<zone>%`              | Official zone name                                 |
+| Placeholder                         | Description                                      |
+|-------------------------------------|--------------------------------------------------|
+| `%regen_zone_count%`               | Total number of zones defined                    |
+| `%regen_regen_enabled%`            | Global regen status (`enabled` or `disabled`)    |
+| `%regen_enabled_<zone>%`           | If regen is enabled for a specific zone          |
+| `%regen_delay_<zone>%`             | Regen delay (in seconds) for a specific zone     |
+| `%regen_exists_<zone>%`            | Returns "true" if the zone exists                |
+| `%regen_block_count_<zone>%`       | Number of original blocks in zone                |
+| `%regen_corner1_<zone>%`           | Coordinates of the first corner of the zone      |
+| `%regen_corner2_<zone>%`           | Coordinates of the second corner of the zone     |
+| `%regen_timer_<zone>%`             | Time remaining before next regeneration (mm:ss)  |
+| `%regen_name_<zone>%`              | Official zone name                               |
 
 ⚠️ Placeholders are auto-registered if PlaceholderAPI is present. No extra config needed.
 
@@ -151,7 +150,7 @@ zones:
 version: 2                    # ⚠️ Do not modify!
 debug: false                  # For more information in the logs
 prefix: "&6[RegenSystem] &r"  # Prefix used in plugin messages
-updates:               
+updates:
   check-interval: 12          # In hours
   notify-admins: true         # To notify the admins
 ```
