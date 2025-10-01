@@ -11,7 +11,7 @@ softdepend:
 
 commands:
   regen:
-    usage: /regen <pos1|pos2|save|reload|delete|snapshot|wand|enable|disable|menu|help|flag>
+    usage: /regen <pos1|pos2|save|reload|delete|snapshot|wand|enable|disable|menu|help|flag|lang>
     description: Regeneration zone management control
     aliases: [rs]
 
@@ -31,6 +31,7 @@ permissions:
       regensystem.menu: true
       regensystem.update: true
       regensystem.flag: true
+      regensystem.lang: true
 
   regensystem.command:
     description: Allows use of /regen command base
@@ -74,4 +75,8 @@ permissions:
 
   regensystem.flag:
     description: Manage flags (list, view, toggle)
+    default: op
+
+  regensystem.lang:
+    description: Allows setting the language of the plugin
     default: op

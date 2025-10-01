@@ -17,7 +17,7 @@ version: 3
 debug: false
 
 # -------------------------------------------------------
-# Message prefix
+# Key.Message prefix
 # - This text will appear in front of every message sent by the plugin.
 # - Supports Minecraft color codes (&a, &b, &c, etc.).
 # Example: "&6[RegenSystem] &r"

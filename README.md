@@ -1,4 +1,4 @@
-# RegenSystem 
+# RegenSystem
 
 [![Modrinth](https://img.shields.io/modrinth/v/regensystem?color=green&label=Modrinth&logo=modrinth)](https://modrinth.com/plugin/regensystem)
 [![Downloads](https://img.shields.io/modrinth/dt/regensystem?label=downloads&color=brightgreen&style=flat-square)](https://modrinth.com/plugin/regensystem)
@@ -10,10 +10,18 @@ A powerful, flexible block regeneration system designed for PvP Box, survival zo
 
 ---
 
+### ✅ Versions
+
+- 🟢 Currently developed on **Paper API 1.20.6**
+- ⚡ Compatible with **Paper 1.20.x → 1.21.x**
+- ⏳ Support for older versions will arrive in the future, but it’s not available yet
+
+---
+
 ### ✅ Server Compatibility
 
 - ✅ Fully compatible with Paper — RegenSystem uses modern Adventure components that are not supported on Spigot and only partially supported on Bukkit.
-- ❌ Spigot is no longer supported — the plugin will not work correctly due to missing Adventure support.
+- ⚠️ Spigot support coming in the future — currently the plugin may not work correctly on Spigot due to missing Adventure support.
 - ⚠️ Not tested on Purpur or Folia — compatibility may vary.
 
 ---
@@ -44,26 +52,28 @@ Learn how to interact with the plugin through custom events and clean interfaces
 | `/regen help [page]`                           | Show the help menu (3 pages available).                                    |
 | `/regen flag`                                  | Show all available flags and their descriptions.                           |
 | `/regen flag <zone>`                           | List all flags of a specific zone with their status.                       |
-| `/regen flag <zone> <flag> <on/off>`           | Enable or disable a specific flag for a zone.                              |
+| `/regen flag <zone> <flag> <on\off>`           | Enable or disable a specific flag for a zone.                              |
+| `/regen lang <language>`                       | Set the plugin language.                                                   |
 
 ---
 
 ### ✅ Permissions
 
-| Permission             | Description                                       | Default |
-| ---------------------- | ------------------------------------------------- | ------- |
-| `regensystem.*`        | Grants all permissions above                      | OP      |
-| `regensystem.command`  | Use the base `/regen` command                     | OP      |
-| `regensystem.pos`      | Set pos1 and pos2 using `/regen pos1/pos2`        | OP      |
-| `regensystem.save`     | Save zones via `/regen save`                      | OP      |
-| `regensystem.reload`   | Reload zones via `/regen reload`                  | OP      |
-| `regensystem.delete`   | Delete zones via `/regen delete`                  | OP      |
-| `regensystem.snapshot` | Update zone data with `/regen snapshot`           | OP      |
-| `regensystem.wand`     | Give yourself the selection axe via `/regen wand` | OP      |
-| `regensystem.toggle`   | Enable/disable regen with `/regen enable/disable` | OP      |
-| `regensystem.menu`     | Open menu via `/regen menu`                       | OP      |
-| `regensystem.update`   | Receive an update message on connection           | OP      |
-| `regensystem.flag`     | Allows you to manage flags with `/regen flag`     | OP      |
+| Permission             | Description                                                     | Default |
+|------------------------|-----------------------------------------------------------------|---------|
+| `regensystem.*`        | Grants all permissions above                                    | OP      |
+| `regensystem.command`  | Use the base `/regen` command                                   | OP      |
+| `regensystem.pos`      | Set pos1 and pos2 using `/regen pos1/pos2`                      | OP      |
+| `regensystem.save`     | Save zones via `/regen save`                                    | OP      |
+| `regensystem.reload`   | Reload zones via `/regen reload`                                | OP      |
+| `regensystem.delete`   | Delete zones via `/regen delete`                                | OP      |
+| `regensystem.snapshot` | Update zone data with `/regen snapshot`                         | OP      |
+| `regensystem.wand`     | Give yourself the selection axe via `/regen wand`               | OP      |
+| `regensystem.toggle`   | Enable/disable regen with `/regen enable/disable`               | OP      |
+| `regensystem.menu`     | Open menu via `/regen menu`                                     | OP      |
+| `regensystem.update`   | Receive an update message on connection                         | OP      |
+| `regensystem.flag`     | Allows you to manage flags with `/regen flag`                   | OP      |
+| `regensystem.lang`     | Allows you to set the language of the plugin with `/regen lang` | OP      |
 
 💡 Use `regensystem.*` to quickly give full access to the plugin.
 
@@ -81,18 +91,18 @@ To enable placeholders, simply install PlaceholderAPI – the plugin will auto-d
 
 If [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) is installed, you can use the following placeholders :
 
-| Placeholder                         | Description                                      |
-|-------------------------------------|--------------------------------------------------|
-| `%regen_zone_count%`               | Total number of zones defined                    |
-| `%regen_regen_enabled%`            | Global regen status (`enabled` or `disabled`)    |
-| `%regen_enabled_<zone>%`           | If regen is enabled for a specific zone          |
-| `%regen_delay_<zone>%`             | Regen delay (in seconds) for a specific zone     |
-| `%regen_exists_<zone>%`            | Returns "true" if the zone exists                |
-| `%regen_block_count_<zone>%`       | Number of original blocks in zone                |
-| `%regen_corner1_<zone>%`           | Coordinates of the first corner of the zone      |
-| `%regen_corner2_<zone>%`           | Coordinates of the second corner of the zone     |
-| `%regen_timer_<zone>%`             | Time remaining before next regeneration (mm:ss)  |
-| `%regen_name_<zone>%`              | Official zone name                               |
+| Placeholder                          | Description                                      |
+|--------------------------------------|--------------------------------------------------|
+| `%regen_zone_count%`                 | Total number of zones defined                    |
+| `%regen_regen_enabled%`              | Global regen status (`enabled` or `disabled`)    |
+| `%regen_enabled_<zone>%`             | If regen is enabled for a specific zone          |
+| `%regen_delay_<zone>%`               | Regen delay (in seconds) for a specific zone     |
+| `%regen_exists_<zone>%`              | Returns "true" if the zone exists                |
+| `%regen_block_count_<zone>%`         | Number of original blocks in zone                |
+| `%regen_corner1_<zone>%`             | Coordinates of the first corner of the zone      |
+| `%regen_corner2_<zone>%`             | Coordinates of the second corner of the zone     |
+| `%regen_timer_<zone>%`               | Time remaining before next regeneration (mm:ss)  |
+| `%regen_name_<zone>%`                | Official zone name                               |
 
 ⚠️ Placeholders are auto-registered if PlaceholderAPI is present. No extra config needed.
 
@@ -147,7 +157,7 @@ zones:
 > ⚠️ Do not edit the version field – it’s used internally for updates.
 
 ```yaml
-version: 2                    # ⚠️ Do not modify!
+version: 3                    # ⚠️ Do not modify!
 debug: false                  # For more information in the logs
 prefix: "&6[RegenSystem] &r"  # Prefix used in plugin messages
 updates:

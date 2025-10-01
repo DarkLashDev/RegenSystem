@@ -47,7 +47,7 @@ tasks.shadowJar {
     relocate("com.google.code.gson", "fr.darklash.regensystem.libs.gson")
     relocate("org.yaml", "fr.darklash.regensystem.libs.snakeyaml")
     relocate("org.bstats", "fr.darklash.regensystem.libs.bstats")
-    relocate("org.bstats", "fr.darklash.regensystem.libs.placeholderapi")
+    relocate("me.clip:placeholderapi", "fr.darklash.regensystem.libs.placeholderapi")
     archiveFileName.set("RegenSystem-${rootProject.version}.jar")
     minimize()
 }

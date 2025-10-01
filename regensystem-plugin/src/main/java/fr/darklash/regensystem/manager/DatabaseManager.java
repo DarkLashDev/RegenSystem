@@ -51,7 +51,6 @@ public class DatabaseManager {
     public synchronized Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {
-                RegenSystem.getInstance().getLogger().warning("Database connection was closed, reconnecting...");
                 connect();
             }
         } catch (SQLException e) {

@@ -1,5 +1,6 @@
 package fr.darklash.regensystem.manager;
 
+import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Util;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -99,7 +100,7 @@ public class MenuManager {
             case YELLOW_STAINED_GLASS_PANE -> {
 
             }
-            default -> player.sendMessage(Component.text("Unknown action"));
+            default -> MessageManager.send(player, Key.Message.UNKNOWN_ACTION);
         }
     }
 }

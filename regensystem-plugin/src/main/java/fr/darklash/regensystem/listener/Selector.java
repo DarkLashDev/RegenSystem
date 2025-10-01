@@ -25,19 +25,15 @@ public class Selector implements Listener {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 
-        // Vérifie que l'item est une DIAMOND_AXE
         if (item.getType() != Material.DIAMOND_AXE) return;
 
-        // Vérifie que l'item a un ItemMeta et que son nom correspond
         ItemMeta meta = item.getItemMeta();
         if (meta == null || !meta.hasCustomModelData()) return;
 
         if (meta.getCustomModelData() != 44) return;
 
-        // Ignore si clique dans l'air
         if (!event.hasBlock()) return;
 
-        // Empêche la casse du bloc
         event.setCancelled(true);
 
         if (event.getClickedBlock() != null) {

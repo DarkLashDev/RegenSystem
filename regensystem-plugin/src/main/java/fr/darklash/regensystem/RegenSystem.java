@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.darklash.regensystem.api.RegenSystemAPI;
-import fr.darklash.regensystem.command.Regen;
+import fr.darklash.regensystem.command.RegenCommand;
 import fr.darklash.regensystem.listener.Flag;
 import fr.darklash.regensystem.listener.Menu;
 import fr.darklash.regensystem.listener.Session;
@@ -14,7 +14,7 @@ import fr.darklash.regensystem.manager.DatabaseManager;
 import fr.darklash.regensystem.manager.FileManager;
 import fr.darklash.regensystem.manager.MenuManager;
 import fr.darklash.regensystem.manager.ZoneManager;
-import fr.darklash.regensystem.util.RegenPlaceholder;
+import fr.darklash.regensystem.util.RegenPlaceholders;
 import fr.darklash.regensystem.util.Util;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -50,7 +50,7 @@ public final class RegenSystem extends JavaPlugin {
     private DatabaseManager databaseManager;
     private Selector selectorListener;
     private Menu menu;
-    private RegenPlaceholder regenPlaceholder;
+    private RegenPlaceholders regenPlaceholders;
 
     private String latestVersionString = null;
     private Instant lastChecked = null;
@@ -116,7 +116,7 @@ public final class RegenSystem extends JavaPlugin {
 
     private void registerCommands() {
         Map<String, CommandExecutor> commands = Map.of(
-                "regen", new Regen()
+                "regen", new RegenCommand()
         );
 
         commands.forEach((name, executor) -> {
@@ -243,8 +243,8 @@ public final class RegenSystem extends JavaPlugin {
 
     private void registerPlaceholders() {
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            this.regenPlaceholder = new RegenPlaceholder(this);
-            regenPlaceholder.register();
+            this.regenPlaceholders = new RegenPlaceholders(this);
+            regenPlaceholders.register();
             getLogger().info("✅ PlaceholderAPI hook registered.");
         } else {
             getLogger().warning("⚠ PlaceholderAPI not found. Placeholders won't work.");
@@ -261,7 +261,7 @@ public final class RegenSystem extends JavaPlugin {
     }
 
     public boolean isPlaceholderEnabled() {
-        return regenPlaceholder != null;
+        return regenPlaceholders != null;
     }
 
     public boolean isDebug() {
