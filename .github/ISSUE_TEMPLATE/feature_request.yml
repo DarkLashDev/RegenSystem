@@ -1,0 +1,47 @@
+name: 💡 Feature Request / Suggestion
+description: Suggest a new feature or improvement for the plugin
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea to improve RegenSystem? Awesome!  
+        Please describe it clearly so I can understand how it should work and why it would be useful.
+
+  - type: input
+    id: title
+    attributes:
+      label: Feature title
+      placeholder: ex. Add a cooldown before area regeneration
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature description
+      description: Explain in detail how your idea should work.
+      placeholder: |
+        The plugin could allow setting a global cooldown before the regeneration process automatically starts again.
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Why would this feature be useful?
+      description: Describe how this could improve the plugin or player experience.
+      placeholder: |
+        It would reduce server load and give admins more control over regeneration timing.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Estimated priority
+      options:
+        - 🟩 Low
+        - 🟨 Medium
+        - 🟥 High
+      default: 1
