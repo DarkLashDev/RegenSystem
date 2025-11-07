@@ -1,0 +1,67 @@
+name: 🐛 Bug Report
+description: Report a problem or unexpected behavior in the plugin
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!  
+        Please fill out the form below with as many details as possible so I can reproduce and fix the issue quickly.
+
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      placeholder: ex. 2.0.1
+      value: 2.0.1
+    validations:
+      required: true
+
+  - type: input
+    id: server
+    attributes:
+      label: Minecraft server version
+      placeholder: ex. Paper 1.21.1 or Spigot 1.20.6
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: Explain what happened, what you expected to happen, and what actually occurred.
+      placeholder: When I regenerate an area, some blocks disappear instead of being restored.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Write each step that leads to the issue.
+      placeholder: |
+        1. Use the command /regen start
+        2. Break a block inside the region
+        3. Wait for the regeneration
+        4. Observe the missing block
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console errors or logs
+      description: Paste any relevant errors or warnings from your server console.
+      render: shell
+      placeholder: |
+        [ERROR] Could not restore block state for STONE at (123, 64, -45)
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: ex. Windows 11, Ubuntu 22.04, Debian 12
+    validations:
+      required: false
