@@ -6,13 +6,13 @@ body:
     attributes:
       value: |
         ## 🧩 Bug Report — RegenSystem v2.0.1  
-        Thanks for taking the time to report a bug!  
+        Thanks for taking the time to report a bug !  
         Please fill out all required fields (**marked with `*`**) so I can reproduce and fix the issue as quickly as possible.
 
   - type: input
     id: title
     attributes:
-      label: Bug title *
+      label: Bug title
       description: A short and clear title describing the issue.
       placeholder: Example — Zone not restoring after regen
     validations:
@@ -21,7 +21,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Plugin version *
+      label: Plugin version
       placeholder: ex. 2.0.1
       value: 2.0.1
     validations:
@@ -30,7 +30,7 @@ body:
   - type: input
     id: server
     attributes:
-      label: Server type and version *
+      label: Server type and version
       description: Specify your server implementation and version.
       placeholder: ex. Paper 1.21.1 or Spigot 1.20.6
     validations:
@@ -39,7 +39,7 @@ body:
   - type: textarea
     id: description
     attributes:
-      label: Detailed bug description *
+      label: Detailed bug description
       description: Explain what happened, what you expected to happen, and what actually occurred.
       placeholder: |
         When I regenerate an area, some blocks are not restored.
@@ -64,7 +64,7 @@ body:
   - type: textarea
     id: pluginFiles
     attributes:
-      label: Plugin files on your server *
+      label: Plugin files on your server
       description: List or upload the RegenSystem plugin files present on your server (e.g., `zones.db`, `zones.yml`, etc.).
       placeholder: |
         zones.db
