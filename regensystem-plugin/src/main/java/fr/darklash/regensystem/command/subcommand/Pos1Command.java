@@ -1,6 +1,7 @@
 package fr.darklash.regensystem.command.subcommand;
 
 import fr.darklash.regensystem.command.SubCommand;
+import fr.darklash.regensystem.listener.Selector;
 import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
 import org.bukkit.Location;
@@ -8,14 +9,13 @@ import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class Pos1Command implements SubCommand {
 
-    private final Map<Player, Location[]> selections;
+    private final Selector selector;
 
-    public Pos1Command(Map<Player, Location[]> selections) {
-        this.selections = selections;
+    public Pos1Command(Selector selector) {
+        this.selector = selector;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class Pos1Command implements SubCommand {
             return true;
         }
 
-        selections.computeIfAbsent(player, p -> new Location[2])[0] = player.getLocation();
+        selector.getSelections().computeIfAbsent(player, p -> new Location[2])[0] = player.getLocation();
         MessageManager.send(player, Key.Message.POSITION1_SET);
         return true;
     }

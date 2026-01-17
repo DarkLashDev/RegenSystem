@@ -176,9 +176,7 @@ public interface RegenZone {
      * @param json the JSON representation of a zone
      * @return a new RegenZone instance
      */
-    static RegenZone fromJson(String json) {
-        throw new UnsupportedOperationException("Implement in concrete class");
-    }
+    RegenZone fromJson(String json);
 
     /**
      * Adds a condition to this zone.

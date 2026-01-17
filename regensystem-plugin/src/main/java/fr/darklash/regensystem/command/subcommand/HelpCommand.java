@@ -51,7 +51,7 @@ public class HelpCommand implements SubCommand {
 
         String[] lines = MessageManager.getRaw(key, null).split("\n");
         for (String line : lines) {
-            player.sendMessage(Util.getPrefix().append(Util.legacy(line)));
+            Util.sendPrefixed(player, Util.legacy(line));
         }
 
         return true;

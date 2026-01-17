@@ -4,10 +4,11 @@ import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.RegenSystemAPI;
 import fr.darklash.regensystem.api.zone.RegenZoneFlag;
 import fr.darklash.regensystem.command.SubCommand;
+import fr.darklash.regensystem.listener.Selector;
 import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Placeholders;
-import fr.darklash.regensystem.util.ZoneService;
+import fr.darklash.regensystem.util.builder.ZoneBuilder;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -17,12 +18,10 @@ import java.util.stream.Stream;
 
 public class SaveCommand implements SubCommand {
 
-    private final Map<Player, Location[]> selections;
-    private final ZoneService service;
+    private final Selector selector;
 
-    public SaveCommand(ZoneService service, Map<Player, Location[]> selections) {
-        this.selections = selections;
-        this.service = service;
+    public SaveCommand(Selector selector) {
+        this.selector = selector;
     }
 
     @Override
@@ -52,17 +51,14 @@ public class SaveCommand implements SubCommand {
             return true;
         }
 
-        Location[] locsCommand = selections.get(player);
-        Location[] locsHache = RegenSystem.getInstance().getSelectorListener().getSelections().get(player);
+        if (selector == null) {
+            MessageManager.send(player, Key.Message.INTERNAL_ERROR);
+            return true;
+        }
 
-        Location pos1 = null;
-        Location pos2 = null;
-
-        if (locsCommand != null && locsCommand[0] != null) pos1 = locsCommand[0];
-        else if (locsHache != null && locsHache[0] != null) pos1 = locsHache[0];
-
-        if (locsCommand != null && locsCommand[1] != null) pos2 = locsCommand[1];
-        else if (locsHache != null && locsHache[1] != null) pos2 = locsHache[1];
+        Location[] loc = selector.getSelections().get(player);
+        Location pos1 = loc != null ? loc[0] : null;
+        Location pos2 = loc != null ? loc[1] : null;
 
         if (pos1 == null || pos2 == null) {
             MessageManager.send(player, Key.Message.POSITIONS_NOT_SET);
@@ -70,7 +66,6 @@ public class SaveCommand implements SubCommand {
         }
 
         String zoneName = args[1];
-
         int delay = 60;
         int argIndex = 2;
 
@@ -83,11 +78,17 @@ public class SaveCommand implements SubCommand {
                 }
                 argIndex = 3;
             } catch (NumberFormatException ignored) {
-
+                // No delay, keep 60s
             }
         }
 
-        service.createZone(zoneName, pos1, pos2, delay);
+        ZoneBuilder builder = new ZoneBuilder()
+                .name(zoneName)
+                .corner1(pos1)
+                .corner2(pos2)
+                .delay(delay)
+                .save(true)
+                .register(true);
 
         for (int i = argIndex; i < args.length; i++) {
             String arg = args[i];
@@ -110,15 +111,18 @@ public class SaveCommand implements SubCommand {
                         continue;
                     }
 
-                    RegenSystemAPI.get().getZone(zoneName).setFlag(flag, value);
+                    builder.flag(flag, value);
                     MessageManager.send(player, Key.Message.FLAG_SET, Placeholders.of("flag", flag.name()).add("value", value).asMap());
                 }
             }
         }
 
-        MessageManager.send(player, Key.Message.ZONE_SAVED_DELAY, Placeholders.of("name", zoneName).add("delay", delay).asMap());
+        builder.build();
 
-        selections.remove(player);
+        MessageManager.send(player, Key.Message.ZONE_SAVED_DELAY,
+                Placeholders.of("name", zoneName).add("delay", delay).asMap());
+
+        selector.getSelections().remove(player);
         RegenSystem.getInstance().getSelectorListener().getSelections().remove(player);
         return true;
     }

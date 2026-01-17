@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -25,6 +26,8 @@ public class Selector implements Listener {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 
+        if (event.getHand() != EquipmentSlot.HAND) return;
+
         if (item.getType() != Material.DIAMOND_AXE) return;
 
         ItemMeta meta = item.getItemMeta();
@@ -39,10 +42,10 @@ public class Selector implements Listener {
         if (event.getClickedBlock() != null) {
             Location clickedBlockLocation = event.getClickedBlock().getLocation();
             if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                selections.computeIfAbsent(player, p -> new Location[2])[0] = clickedBlockLocation;
+                selections.computeIfAbsent(player, p -> new Location[2])[1] = clickedBlockLocation;
                 Util.send(player, "&2Position 2 defined at " + formatLocation(clickedBlockLocation));
             } else if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-                selections.computeIfAbsent(player, p -> new Location[2])[1] = clickedBlockLocation;
+                selections.computeIfAbsent(player, p -> new Location[2])[0] = clickedBlockLocation;
                 Util.send(player, "&2Position 1 defined at " + formatLocation(clickedBlockLocation));
             }
         }

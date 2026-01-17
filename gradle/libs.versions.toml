@@ -4,17 +4,23 @@ gson = "2.13.2"
 snakeyaml = "2.5"
 bstats = "3.1.0"
 paper = "1.20.6-R0.1-SNAPSHOT"
-spigot = "1.20.6-R0.1-SNAPSHOT"
 placeholderapi = "2.11.6"
+adventure_bukkit = "4.4.1"
+adventure-api = "4.25.0"
 
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
-paper = { module = "io.papermc.paper:paper-api", version.ref = "paper"}
-spigot = { module = "org.spigotmc:spigot-api", version.ref = "spigot"}
-placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi"}
+paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
+adventureapi = { module = "net.kyori:adventure-api", version.ref = "adventure-api" }
+adventurebukkit = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure_bukkit"}
+adventureminimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-api" }
+adventureserializergson = { module = "net.kyori:adventure-text-serializer-gson", version.ref = "adventure-api" }
+adventureserializerlegacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure-api" }
+adventureserializerplain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure-api" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "9.2.2" }

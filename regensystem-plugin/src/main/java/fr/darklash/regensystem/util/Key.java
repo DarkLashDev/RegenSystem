@@ -14,7 +14,6 @@ public class Key {
     }
 
     public enum Message {
-
         ONLY_PLAYERS,
         UNKNOWN_SUBCOMMAND,
         REGEN_CMD_USAGE,
@@ -47,6 +46,7 @@ public class Key {
         ALL_ZONES_DISABLED,
         LANGUAGE_SET,
         UNKNOWN_LANGUAGE,
-        UNKNOWN_ACTION
+        UNKNOWN_ACTION,
+        INTERNAL_ERROR
     }
 }

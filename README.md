@@ -12,17 +12,20 @@ A powerful, flexible block regeneration system designed for PvP Box, survival zo
 
 ### ✅ Versions
 
-- 🟢 Currently developed on **Paper API 1.20.6**
-- ⚡ Compatible with **Paper 1.20.x → 1.21.x**
-- ⏳ Support for older versions will arrive in the future, but it’s not available yet
+- 🟢 Actively developed on **Paper API 1.20.6+**
+- ⚡ Compatible with **Paper / Spigot / Folia** from **1.20.x → 1.21.x**
+- ⏳ Support for older Minecraft versions may arrive in the future
 
 ---
 
 ### ✅ Server Compatibility
 
-- ✅ Fully compatible with Paper — RegenSystem uses modern Adventure components that are not supported on Spigot and only partially supported on Bukkit.
-- ⚠️ Spigot support coming in the future — currently the plugin may not work correctly on Spigot due to missing Adventure support.
-- ⚠️ Not tested on Purpur or Folia — compatibility may vary.
+- ✅ **Paper** — Fully supported and recommended
+- ✅ **Folia** — Fully supported (region-safe scheduler, async-safe operations)
+- ✅ **Spigot** — Supported (automatic fallbacks for missing APIs)
+
+ℹ️ The plugin automatically adapts its behavior depending on the server platform  
+(Paper / Folia / Spigot) to ensure maximum compatibility and stability.
 
 ---
 

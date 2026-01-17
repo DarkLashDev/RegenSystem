@@ -77,6 +77,7 @@ public class MessageManager {
         en.put(Key.Message.LANGUAGE_SET, "&aLanguage set to : &e<lang>");
         en.put(Key.Message.UNKNOWN_LANGUAGE, "&cUnknown language. Available : EN, FR");
         en.put(Key.Message.UNKNOWN_ACTION, "Unknown action.");
+        en.put(Key.Message.INTERNAL_ERROR, "&cAn internal error has occurred.");
         translations.put(Key.Lang.EN, en);
 
         // === FRENCH ===
@@ -142,6 +143,7 @@ public class MessageManager {
         fr.put(Key.Message.LANGUAGE_SET, "&aLangue définie sur : &e<lang>");
         fr.put(Key.Message.UNKNOWN_LANGUAGE, "&cLangue inconnue. Disponibles : EN, FR");
         fr.put(Key.Message.UNKNOWN_ACTION, "Action inconnue.");
+        fr.put(Key.Message.INTERNAL_ERROR, "&cUne erreur interne est survenue.");
         translations.put(Key.Lang.FR, fr);
     }
 

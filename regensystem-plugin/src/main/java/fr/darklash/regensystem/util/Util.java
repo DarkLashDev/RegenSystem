@@ -1,9 +1,11 @@
 package fr.darklash.regensystem.util;
 
 import fr.darklash.regensystem.RegenSystem;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
 import java.util.LinkedHashMap;
@@ -14,6 +16,10 @@ public class Util {
 
     private static final MiniMessage MINI = MiniMessage.miniMessage();
     private static final Map<String, String> CODES = new LinkedHashMap<>();
+
+    private static BukkitAudiences audiences() {
+        return RegenSystem.getInstance().getAudiences();
+    }
 
     static {
         // Colors
@@ -46,44 +52,56 @@ public class Util {
     private static String convertToMiniMessage(String legacy) {
         if (legacy == null) return "";
         String converted = legacy;
-        for (Map.Entry<String, String> entry : CODES.entrySet()) {
+        for (var entry : CODES.entrySet()) {
             converted = converted.replace(entry.getKey(), entry.getValue());
         }
         return converted;
     }
 
-    public static Component miniItalic(String legacy) {
-        return MINI.deserialize(convertToMiniMessage(legacy));
-    }
-
-    public static Component miniNoItalic(String legacy) {
+    public static Component legacy(String legacy) {
         return MINI.deserialize(convertToMiniMessage(legacy))
                 .decoration(TextDecoration.ITALIC, false);
     }
 
-    public static void send(Player player, String message) {
-        player.sendMessage(getPrefix().append(miniNoItalic(message)));
-    }
-
-    public static void sendRaw(Player player, String message) {
-        player.sendMessage(miniNoItalic(message));
-    }
-
-    public static Component legacy(String legacy) {
-        return miniNoItalic(legacy);
-    }
-
     public static List<Component> legacy(List<String> lines) {
-        return lines.stream().map(Util::legacy).toList();
+        if (lines == null) return List.of();
+        return lines.stream()
+                .map(Util::legacy)
+                .toList();
     }
 
-    public static String stripColor(String input) {
-        if (input == null) return "";
-        return input.replaceAll("(?i)(&[0-9a-fk-or])|(§[0-9a-fk-or])", "");
+    public static String toLegacyString(Component component) {
+        if (component == null) return "";
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
     public static Component getPrefix() {
-        String rawPrefix = RegenSystem.getInstance().getFileManager().get(Key.File.CONFIG).getString("prefix", "&6[RegenSystem] &r");
-        return miniNoItalic(rawPrefix);
+        String raw = RegenSystem.getInstance()
+                .getFileManager()
+                .get(Key.File.CONFIG)
+                .getString("prefix", "&6[RegenSystem] &r");
+        return legacy(raw);
+    }
+
+    /* ===================== SEND ===================== */
+
+    public static void send(Player player, String message) {
+        audiences().player(player)
+                .sendMessage(getPrefix().append(legacy(message)));
+    }
+
+    public static void sendRaw(Player player, String message) {
+        audiences().player(player)
+                .sendMessage(legacy(message));
+    }
+
+    public static void send(Player player, Component component) {
+        audiences().player(player)
+                .sendMessage(component);
+    }
+
+    public static void sendPrefixed(Player player, Component component) {
+        audiences().player(player)
+                .sendMessage(getPrefix().append(component));
     }
 }

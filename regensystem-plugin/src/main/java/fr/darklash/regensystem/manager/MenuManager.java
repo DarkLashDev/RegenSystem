@@ -1,5 +1,6 @@
 package fr.darklash.regensystem.manager;
 
+import fr.darklash.regensystem.util.PlatformHelper;
 import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Util;
 import net.kyori.adventure.text.Component;
@@ -16,7 +17,7 @@ import java.util.List;
 public class MenuManager {
 
     private final Inventory menu;
-    private static final Component TITLE = Util.legacy("RegenSystem");
+    private static final String TITLE = "RegenSystem";
 
     public MenuManager() {
         menu = Bukkit.createInventory(null, 27, TITLE);
@@ -29,10 +30,11 @@ public class MenuManager {
         ItemStack glassPane = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glassPane.getItemMeta();
         if (glassMeta != null) {
-            glassMeta.displayName(Component.empty());
-            glassMeta.lore(List.of());
+            PlatformHelper.setDisplayName(glassMeta, Component.empty());
+            PlatformHelper.setLore(glassMeta, List.of());
             glassPane.setItemMeta(glassMeta);
         }
+
         for (int i = 0; i < menu.getSize(); i++) {
             menu.setItem(i, glassPane);
         }
@@ -49,8 +51,8 @@ public class MenuManager {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(Util.legacy(name));
-            meta.lore(Util.legacy(lore));
+            PlatformHelper.setDisplayName(meta, Util.legacy(name));
+            PlatformHelper.setLore(meta, Util.legacy(lore));
             item.setItemMeta(meta);
         }
         return item;
@@ -62,7 +64,7 @@ public class MenuManager {
 
     public void handleClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
-        if (!event.getView().title().equals(TITLE)) return;
+        if (!event.getView().getTitle().equals(TITLE)) return;
 
         event.setCancelled(true);
 

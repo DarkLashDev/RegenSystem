@@ -11,12 +11,15 @@ import fr.darklash.regensystem.api.zone.RegenZone;
 import fr.darklash.regensystem.api.zone.RegenZoneCondition;
 import fr.darklash.regensystem.api.zone.RegenZoneFlag;
 import fr.darklash.regensystem.api.zone.RegenZoneAction;
+import fr.darklash.regensystem.util.scheduler.RegenScheduler;
+import fr.darklash.regensystem.util.scheduler.RegenTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
 import java.lang.reflect.Type;
@@ -39,6 +42,8 @@ public class Zone implements RegenZone {
     private final Map<RegenZoneFlag, Boolean> flags = new HashMap<>();
     private final List<RegenZoneCondition> conditions = new ArrayList<>();
     private final List<RegenZoneAction> actions = new ArrayList<>();
+
+    private final RegenScheduler scheduler = RegenSystem.getInstance().getScheduler();
 
     public Zone(String name, Location corner1, Location corner2) {
         this.name = name;
@@ -118,13 +123,23 @@ public class Zone implements RegenZone {
         for (int x = Math.min(corner1.getBlockX(), corner2.getBlockX()); x <= Math.max(corner1.getBlockX(), corner2.getBlockX()); x++) {
             for (int y = Math.min(corner1.getBlockY(), corner2.getBlockY()); y <= Math.max(corner1.getBlockY(), corner2.getBlockY()); y++) {
                 for (int z = Math.min(corner1.getBlockZ(), corner2.getBlockZ()); z <= Math.max(corner1.getBlockZ(), corner2.getBlockZ()); z++) {
-                    Location loc = new Location(corner1.getWorld(), x, y, z).toBlockLocation();
+                    Location loc = toBlockLocation(new Location(corner1.getWorld(), x, y, z));
                     loc.getWorld().getChunkAt(loc).load(); // facultatif, mais utile
                     String key = x + "," + y + "," + z;
                     originalBlocks.put(key, loc.getBlock().getBlockData().clone());
                 }
             }
         }
+    }
+
+    public Location toBlockLocation(Location loc) {
+        if (loc == null) return null;
+        return new Location(
+                loc.getWorld(),
+                loc.getBlockX(),
+                loc.getBlockY(),
+                loc.getBlockZ()
+        );
     }
 
     @Override
@@ -155,7 +170,7 @@ public class Zone implements RegenZone {
                 .forEach(player -> {
                     Location safeLoc = findSafeLocationNearZone(world, minX, maxX, minY, maxY, minZ, maxZ);
                     if (safeLoc != null) {
-                        player.teleport(safeLoc);
+                        PlatformHelper.teleport(player, safeLoc);
                         Util.send(player, "&eYou've been moved out of a regenerating zone.");
                     } else {
                         Util.send(player, "&cNo safe position found outside the zone !");
@@ -367,7 +382,7 @@ public class Zone implements RegenZone {
         corner1.getWorld().getEntities().stream()
                 .filter(e -> typeSet.contains(e.getType()))
                 .filter(e -> contains(e.getLocation()))
-                .forEach(e -> e.remove());
+                .forEach(Entity::remove);
     }
 
     @Override
@@ -379,35 +394,56 @@ public class Zone implements RegenZone {
 
     @Override
     public void highlight(Particle particle, Duration duration) {
-        Bukkit.getScheduler().runTaskTimer(RegenSystem.getInstance(), new Runnable() {
-            long endTime = System.currentTimeMillis() + duration.toMillis();
-            @Override
-            public void run() {
-                if (System.currentTimeMillis() > endTime) return;
+        long intervalTicks = 5L;
+        long totalTicks = duration.toMillis() / 50L; // 1 tick = 50ms
 
-                int minX = corner1.getBlockX();
-                int maxX = corner2.getBlockX();
-                int minY = corner1.getBlockY();
-                int maxY = corner2.getBlockY();
-                int minZ = corner1.getBlockZ();
-                int maxZ = corner2.getBlockZ();
+        // On stocke la tâche pour pouvoir l’annuler proprement
+        RegenTask[] taskHolder = new RegenTask[1];
 
-                World world = corner1.getWorld();
-                // Affiche les particules sur les arêtes de la zone
-                for (int x = minX; x <= maxX; x++) {
-                    for (int y = minY; y <= maxY; y++) {
-                        world.spawnParticle(particle, x + 0.5, y + 0.5, minZ + 0.5, 1);
-                        world.spawnParticle(particle, x + 0.5, y + 0.5, maxZ + 0.5, 1);
+        taskHolder[0] = scheduler.runRepeating(
+                corner1, // Region-safe pour Folia
+                0L,
+                intervalTicks,
+                new Runnable() {
+                    long ticksElapsed = 0;
+
+                    @Override
+                    public void run() {
+                        ticksElapsed++;
+
+                        if (ticksElapsed >= totalTicks) {
+                            taskHolder[0].cancel(); // ✅ arrêt propre
+                            return;
+                        }
+
+                        int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
+                        int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
+                        int minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
+                        int maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
+                        int minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
+                        int maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
+
+                        World world = corner1.getWorld();
+                        if (world == null) return;
+
+                        // Arêtes X
+                        for (int x = minX; x <= maxX; x++) {
+                            for (int y = minY; y <= maxY; y++) {
+                                world.spawnParticle(particle, x + 0.5, y + 0.5, minZ + 0.5, 1);
+                                world.spawnParticle(particle, x + 0.5, y + 0.5, maxZ + 0.5, 1);
+                            }
+                        }
+
+                        // Arêtes Z
+                        for (int z = minZ; z <= maxZ; z++) {
+                            for (int y = minY; y <= maxY; y++) {
+                                world.spawnParticle(particle, minX + 0.5, y + 0.5, z + 0.5, 1);
+                                world.spawnParticle(particle, maxX + 0.5, y + 0.5, z + 0.5, 1);
+                            }
+                        }
                     }
                 }
-                for (int z = minZ; z <= maxZ; z++) {
-                    for (int y = minY; y <= maxY; y++) {
-                        world.spawnParticle(particle, minX + 0.5, y + 0.5, z + 0.5, 1);
-                        world.spawnParticle(particle, maxX + 0.5, y + 0.5, z + 0.5, 1);
-                    }
-                }
-            }
-        }, 0L, 5L);
+        );
     }
 
     @Override
@@ -428,11 +464,12 @@ public class Zone implements RegenZone {
         return gson.toJson(obj);
     }
 
-    public static RegenZone fromJson(String json) {
+    @Override
+    public RegenZone fromJson(String json) {
         JsonObject obj = gson.fromJson(json, JsonObject.class);
         Location c1 = deserializeLocation(obj.get("corner1").getAsString());
         Location c2 = deserializeLocation(obj.get("corner2").getAsString());
-        Zone zone = new Zone(obj.get("name").getAsString(), c1, c2);
+        RegenZone zone = new Zone(obj.get("name").getAsString(), c1, c2);
 
         Type flagMapType = new TypeToken<Map<String, Boolean>>() {}.getType();
         Map<String, Boolean> flagsMap = gson.fromJson(obj.get("flags"), flagMapType);

@@ -40,9 +40,7 @@ public class FlagCommand implements SubCommand {
         if (args.length == 1) {
             MessageManager.send(player, Key.Message.FLAG_LIST_HEADER);
             for (RegenZoneFlag flag : RegenZoneFlag.values()) {
-                player.sendMessage(Util.getPrefix().append(
-                        Util.legacy(" &e" + flag.name() + " &7- &f" + flag.getDescription())
-                ));
+                Util.sendPrefixed(player, Util.legacy(" &e" + flag.name() + " &7- &f" + flag.getDescription()));
             }
             return true;
         }
@@ -62,9 +60,7 @@ public class FlagCommand implements SubCommand {
                 boolean value = false;
                 value = zone.hasFlag(flag);
                 String status = value ? "&a✅" : "&c❌";
-                player.sendMessage(Util.getPrefix().append(
-                        Util.legacy(" &e" + flag.name() + " &7- " + status + " &f" + flag.getDescription())
-                ));
+                Util.sendPrefixed(player, Util.legacy(" &e" + flag.name() + " &7- " + status + " &f" + flag.getDescription()));
             }
             return true;
         }

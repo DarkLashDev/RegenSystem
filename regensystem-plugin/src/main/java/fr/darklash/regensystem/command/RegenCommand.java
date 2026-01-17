@@ -2,6 +2,7 @@ package fr.darklash.regensystem.command;
 
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.command.subcommand.*;
+import fr.darklash.regensystem.listener.Selector;
 import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.*;
 import org.bukkit.Location;
@@ -20,11 +21,12 @@ public class RegenCommand implements CommandExecutor, TabCompleter {
 
     public RegenCommand() {
         ZoneService service = new ZoneService(RegenSystem.getInstance());
-        Map<Player, Location[]> selections = new HashMap<>();
 
-        register(new Pos1Command(selections));
-        register(new Pos2Command(selections));
-        register(new SaveCommand(service, selections));
+        Selector selector = RegenSystem.getInstance().getSelectorListener();
+
+        register(new Pos1Command(selector));
+        register(new Pos2Command(selector));
+        register(new SaveCommand(selector));
         register(new ReloadCommand());
         register(new DeleteCommand(service));
         register(new SnapshotCommand(service));

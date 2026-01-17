@@ -5,6 +5,7 @@ api-version: '1.20'
 authors: [ DarkLash ]
 description: Regeneration zone management control
 website: https://darklash.fr/
+folia-supported: true
 
 softdepend:
   - PlaceholderAPI

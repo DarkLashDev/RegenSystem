@@ -2,6 +2,7 @@ package fr.darklash.regensystem.command.subcommand;
 
 import fr.darklash.regensystem.command.SubCommand;
 import fr.darklash.regensystem.manager.MessageManager;
+import fr.darklash.regensystem.util.PlatformHelper;
 import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Util;
 import org.bukkit.Material;
@@ -38,8 +39,8 @@ public class WandCommand implements SubCommand {
         ItemStack axe = new ItemStack(Material.DIAMOND_AXE);
         ItemMeta meta = axe.getItemMeta();
         if (meta != null) {
-            meta.displayName(Util.legacy("&2Zone selection axe"));
-            meta.lore(Util.legacy(List.of("&eLeft-click = Pos1", "&eRight-click = Pos2")));
+            PlatformHelper.setDisplayName(meta, Util.legacy("&2Zone selection axe"));
+            PlatformHelper.setLore(meta, Util.legacy(List.of("&eLeft-click = Pos1", "&eRight-click = Pos2")));
             meta.setCustomModelData(44);
             axe.setItemMeta(meta);
         }

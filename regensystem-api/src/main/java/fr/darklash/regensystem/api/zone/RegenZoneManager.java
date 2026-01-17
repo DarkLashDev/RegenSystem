@@ -2,8 +2,7 @@ package fr.darklash.regensystem.api.zone;
 
 import org.bukkit.Location;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manager for all {@link RegenZone} instances.

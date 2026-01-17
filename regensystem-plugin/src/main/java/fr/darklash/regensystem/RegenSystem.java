@@ -14,13 +14,20 @@ import fr.darklash.regensystem.manager.DatabaseManager;
 import fr.darklash.regensystem.manager.FileManager;
 import fr.darklash.regensystem.manager.MenuManager;
 import fr.darklash.regensystem.manager.ZoneManager;
+import fr.darklash.regensystem.util.Platform;
 import fr.darklash.regensystem.util.RegenPlaceholders;
+import fr.darklash.regensystem.util.ServerPlatform;
 import fr.darklash.regensystem.util.Util;
+import fr.darklash.regensystem.util.scheduler.FoliaRegenScheduler;
+import fr.darklash.regensystem.util.scheduler.PaperRegenScheduler;
+import fr.darklash.regensystem.util.scheduler.RegenScheduler;
 import lombok.Getter;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
@@ -34,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +58,9 @@ public final class RegenSystem extends JavaPlugin {
     private Selector selectorListener;
     private Menu menu;
     private RegenPlaceholders regenPlaceholders;
+    private RegenScheduler scheduler;
+
+    private BukkitAudiences audiences;
 
     private String latestVersionString = null;
     private Instant lastChecked = null;
@@ -59,15 +69,19 @@ public final class RegenSystem extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        this.audiences = BukkitAudiences.create(this);
 
-        boolean isPaper = Bukkit.getServer().getName().equalsIgnoreCase("Paper")
-                || Bukkit.getServer().getVersion().contains("Paper")
-                || Bukkit.getServer().getBukkitVersion().contains("Paper");
+        Platform platform = ServerPlatform.detect();
 
-        if (!isPaper) {
-            getLogger().warning("RegenSystem requires Paper. Disabling...");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
+        switch (platform) {
+            case FOLIA -> {
+                scheduler = new FoliaRegenScheduler(this);
+                getLogger().info("Running on FOLIA.");
+            }
+            case PAPER, SPIGOT -> {
+                scheduler = new PaperRegenScheduler(this);
+                getLogger().info("Running on " + platform);
+            }
         }
 
         zoneManager = new ZoneManager();
@@ -77,29 +91,32 @@ public final class RegenSystem extends JavaPlugin {
         initManagers();
         databaseManager.connect();
         zoneManager.loadZones();
-        registerCommands();
         registerListeners(getServer().getPluginManager());
+        registerCommands();
         registerPlaceholders();
 
         long hours = getConfig().getLong("updates.check-interval", 12);
         long interval = hours * 3600;
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::checkUpdate, 0L, interval * 20L);
+        scheduler.runRepeatingAsync(0L, interval * 20L, this::checkUpdate);
 
         int pluginID = 26569;
         Metrics metrics = new Metrics(this, pluginID);
+
+        metrics.addCustomChart(new SingleLineChart("zones_total", () -> getZoneManager().getZones().size()));
 
         getLogger().info("  _   __ ");
         getLogger().info(" |_) (_  " + getDescription().getName() + " v" + getDescription().getVersion());
         getLogger().info(" | \\ __) Running on Bukkit - " + getServer().getName());
         getLogger().info("         ");
 
-        getLogger().info("✅ RegenSystem activated.");
+        getLogger().info("RegenSystem activated.");
     }
 
     @Override
     public void onDisable() {
+        if (audiences != null) audiences.close();
         disconnectDatabase();
-        getLogger().info("⛔ RegenSystem deactivated.");
+        getLogger().info("RegenSystem deactivated.");
     }
 
     private void initManagers() {
@@ -125,7 +142,7 @@ public final class RegenSystem extends JavaPlugin {
                 command.setExecutor(executor);
                 command.setTabCompleter((TabCompleter) executor);
             } else {
-                throw new IllegalStateException("❌ Command '" + name + "' is not registered in plugin.yml!");
+                throw new IllegalStateException("Command '" + name + "' is not registered in plugin.yml!");
             }
         });
     }
@@ -145,35 +162,36 @@ public final class RegenSystem extends JavaPlugin {
     }
 
     private void checkUpdate() {
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+        scheduler.runAsync(() -> {
             try {
                 if (loadCache()) {
-                    getLogger().info("✅ Cached version check: " + latestVersionString);
+                    getLogger().info("Cached version check: " + latestVersionString);
                     return;
                 }
 
                 String projectId = "regensystem"; // Slug Modrinth
                 String url = "https://api.modrinth.com/v2/project/" + projectId + "/version";
 
-                HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+                URI uri = URI.create(url); // Crée un URI à partir de la String
+                HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
                 connection.setRequestProperty("User-Agent", "RegenSystem/" + getDescription().getVersion());
                 connection.setRequestMethod("GET");
 
                 int responseCode = connection.getResponseCode();
                 if (responseCode != 200) {
-                    getLogger().warning("⚠ Unable to check for updates (HTTP " + responseCode + ")");
+                    getLogger().warning("Unable to check for updates (HTTP " + responseCode + ")");
                     return;
                 }
 
                 JsonArray versions = JsonParser.parseReader(new InputStreamReader(connection.getInputStream())).getAsJsonArray();
                 if (versions.isEmpty()) {
-                    getLogger().warning("⚠ No versions found on Modrinth.");
+                    getLogger().warning("No versions found on Modrinth.");
                     return;
                 }
 
                 JsonObject latestVersion = getJsonObject(versions);
                 if (latestVersion == null) {
-                    getLogger().warning("⚠ No release versions found on Modrinth.");
+                    getLogger().warning("No release versions found on Modrinth.");
                     return;
                 }
 
@@ -187,14 +205,14 @@ public final class RegenSystem extends JavaPlugin {
                     getLogger().warning("⚠ A new version of RegenSystem is available : " + latest + " (you are on " + current + ")");
 
                     if (getConfig().getBoolean("updates.notify-admins", true)) {
-                        Bukkit.getScheduler().runTask(this, () -> notifyAdmins(latest, current));
+                        scheduler.runSync(() -> notifyAdmins(latest, current));
                     }
                 } else {
-                    getLogger().info("✅ RegenSystem is up to date.");
+                    getLogger().info("RegenSystem is up to date.");
                 }
 
             } catch (Exception e) {
-                getLogger().warning("⚠ Failed to check for updates : " + e.getMessage());
+                getLogger().warning("Failed to check for updates : " + e.getMessage());
                 logException(e);
             }
         });
@@ -225,19 +243,29 @@ public final class RegenSystem extends JavaPlugin {
 
     public void notifyAdmins(String latest, String current) {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.isOp() || player.hasPermission("regensystem.update")) {
-                Util.send(player, "&eA new version is available : &a" + latest + "&e (you are using &c" + current + "&e).");
-
-                Component clickable = Util.getPrefix()
-                        .append(Component.text("→ Click here to download : ")
-                                .color(net.kyori.adventure.text.format.NamedTextColor.GRAY))
-                        .append(Component.text("https://modrinth.com/plugin/regensystem")
-                                .color(net.kyori.adventure.text.format.NamedTextColor.AQUA)
-                                .clickEvent(ClickEvent.openUrl("https://modrinth.com/plugin/regensystem"))
-                                .hoverEvent(HoverEvent.showText(Util.legacy("&7Click to open Modrinth in your browser"))));
-
-                player.sendMessage(clickable);
+            if (!player.isOp() && !player.hasPermission("regensystem.update")) {
+                continue;
             }
+
+            Util.send(
+                    player,
+                    "&eA new version is available : &a" + latest +
+                            "&e (you are using &c" + current + "&e)."
+            );
+
+            Component clickable =
+                    Component.text("→ Click here to download : ")
+                            .color(net.kyori.adventure.text.format.NamedTextColor.GRAY)
+                            .append(
+                                    Component.text("https://modrinth.com/plugin/regensystem")
+                                            .color(net.kyori.adventure.text.format.NamedTextColor.AQUA)
+                                            .clickEvent(ClickEvent.openUrl(
+                                                    "https://modrinth.com/plugin/regensystem"))
+                                            .hoverEvent(HoverEvent.showText(
+                                                    Util.legacy("&7Click to open Modrinth in your browser")))
+                            );
+
+            Util.sendPrefixed(player, clickable);
         }
     }
 
@@ -245,9 +273,9 @@ public final class RegenSystem extends JavaPlugin {
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             this.regenPlaceholders = new RegenPlaceholders(this);
             regenPlaceholders.register();
-            getLogger().info("✅ PlaceholderAPI hook registered.");
+            getLogger().info("PlaceholderAPI hook registered.");
         } else {
-            getLogger().warning("⚠ PlaceholderAPI not found. Placeholders won't work.");
+            getLogger().warning("PlaceholderAPI not found. Placeholders won't work.");
         }
     }
 
@@ -285,7 +313,7 @@ public final class RegenSystem extends JavaPlugin {
             return true;
 
         } catch (Exception e) {
-            getLogger().warning("⚠ Failed to read update cache : " + e.getMessage());
+            getLogger().warning("Failed to read update cache : " + e.getMessage());
             return false;
         }
     }
@@ -295,7 +323,7 @@ public final class RegenSystem extends JavaPlugin {
             List<String> lines = List.of(Instant.now().toString(), latestVersionString);
             java.nio.file.Files.write(versionCacheFile.toPath(), lines);
         } catch (Exception e) {
-            getLogger().warning("⚠ Failed to write update cache : " + e.getMessage());
+            getLogger().warning("Failed to write update cache : " + e.getMessage());
         }
     }
 
