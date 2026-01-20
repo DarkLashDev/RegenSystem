@@ -1,9 +1,8 @@
 package fr.darklash.regensystem.command.subcommand;
 
 import fr.darklash.regensystem.command.SubCommand;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
-import fr.darklash.regensystem.util.Placeholders;
+import fr.darklash.regensystem.placeholder.Placeholders;
 import fr.darklash.regensystem.util.Util;
 import org.bukkit.entity.Player;
 
@@ -33,7 +32,7 @@ public class HelpCommand implements SubCommand {
             try {
                 page = Integer.parseInt(args[1]);
             } catch (NumberFormatException ignored) {
-                MessageManager.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
+                Util.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
                 return true;
             }
         }
@@ -49,7 +48,7 @@ public class HelpCommand implements SubCommand {
             }
         }
 
-        String[] lines = MessageManager.getRaw(key, null).split("\n");
+        String[] lines = Util.getRaw(key, null).split("\n");
         for (String line : lines) {
             Util.sendPrefixed(player, Util.legacy(line));
         }

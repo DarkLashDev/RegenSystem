@@ -3,9 +3,9 @@ package fr.darklash.regensystem.command.subcommand;
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.RegenSystemAPI;
 import fr.darklash.regensystem.command.SubCommand;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
-import fr.darklash.regensystem.util.Placeholders;
+import fr.darklash.regensystem.placeholder.Placeholders;
+import fr.darklash.regensystem.util.Util;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -33,21 +33,21 @@ public class ReloadCommand implements SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (!player.hasPermission(getPermission())) {
-            MessageManager.send(player, Key.Message.NO_PERMISSION);
+            Util.send(player, Key.Message.NO_PERMISSION);
             return true;
         }
 
         if (args.length >= 2) {
             String zoneName = args[1];
             if (!RegenSystem.getInstance().getFileManager().get(Key.File.ZONE).contains("zones." + zoneName)) {
-                MessageManager.send(player, Key.Message.ZONE_NOT_FOUND, Placeholders.of("name", zoneName).asMap());
+                Util.send(player, Key.Message.ZONE_NOT_FOUND, Placeholders.of("name", zoneName).asMap());
                 return true;
             }
-            RegenSystemAPI.get().reloadZone(zoneName);
-            MessageManager.send(player, Key.Message.ZONE_RELOADED, Placeholders.of("name", zoneName).asMap());
+            RegenSystem.getInstance().getZoneManager().reloadZone(zoneName);
+            Util.send(player, Key.Message.ZONE_RELOADED, Placeholders.of("name", zoneName).asMap());
         } else {
-            RegenSystemAPI.get().loadZones();
-            MessageManager.send(player, Key.Message.ALL_ZONES_RELOADED);
+            RegenSystem.getInstance().getZoneManager().loadZones();
+            Util.send(player, Key.Message.ALL_ZONES_RELOADED);
         }
         return true;
     }
@@ -57,7 +57,7 @@ public class ReloadCommand implements SubCommand {
     public List<String> tabComplete(Player player, String[] args) {
         if (args.length == 2) {
             String input = args[1].toLowerCase();
-            Set<String> zones = RegenSystemAPI.get().getZoneNames();
+            Set<String> zones = RegenSystemAPI.getZones().getZoneNames();
             List<String> result = new ArrayList<>();
 
             if ("all".startsWith(input)) result.add("all");

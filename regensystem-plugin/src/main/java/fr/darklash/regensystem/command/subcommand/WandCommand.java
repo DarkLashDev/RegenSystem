@@ -1,8 +1,7 @@
 package fr.darklash.regensystem.command.subcommand;
 
 import fr.darklash.regensystem.command.SubCommand;
-import fr.darklash.regensystem.manager.MessageManager;
-import fr.darklash.regensystem.util.PlatformHelper;
+import fr.darklash.regensystem.platform.PlatformHelper;
 import fr.darklash.regensystem.util.Key;
 import fr.darklash.regensystem.util.Util;
 import org.bukkit.Material;
@@ -32,7 +31,7 @@ public class WandCommand implements SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (!player.hasPermission(getPermission())) {
-            MessageManager.send(player, Key.Message.NO_PERMISSION);
+            Util.send(player, Key.Message.NO_PERMISSION);
             return true;
         }
 
@@ -45,7 +44,7 @@ public class WandCommand implements SubCommand {
             axe.setItemMeta(meta);
         }
         player.getInventory().addItem(axe);
-        MessageManager.send(player, Key.Message.WAND_RECEIVED);
+        Util.send(player, Key.Message.WAND_RECEIVED);
         return true;
     }
 

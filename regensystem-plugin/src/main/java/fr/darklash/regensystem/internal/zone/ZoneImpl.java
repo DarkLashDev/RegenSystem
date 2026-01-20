@@ -1,4 +1,4 @@
-package fr.darklash.regensystem.util;
+package fr.darklash.regensystem.internal.zone;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -7,12 +7,15 @@ import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.event.ZoneFlagChangeEvent;
 import fr.darklash.regensystem.api.event.ZonePostRegenEvent;
 import fr.darklash.regensystem.api.event.ZonePreRegenEvent;
-import fr.darklash.regensystem.api.zone.RegenZone;
-import fr.darklash.regensystem.api.zone.RegenZoneCondition;
-import fr.darklash.regensystem.api.zone.RegenZoneFlag;
-import fr.darklash.regensystem.api.zone.RegenZoneAction;
-import fr.darklash.regensystem.util.scheduler.RegenScheduler;
-import fr.darklash.regensystem.util.scheduler.RegenTask;
+import fr.darklash.regensystem.api.regen.RegenResult;
+import fr.darklash.regensystem.api.zone.Zone;
+import fr.darklash.regensystem.api.zone.ZoneFlag;
+import fr.darklash.regensystem.util.Key;
+import fr.darklash.regensystem.platform.PlatformHelper;
+import fr.darklash.regensystem.util.Util;
+import fr.darklash.regensystem.platform.scheduler.RegenScheduler;
+import fr.darklash.regensystem.platform.scheduler.RegenTask;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -31,58 +34,37 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Zone implements RegenZone {
+public class ZoneImpl implements Zone {
 
     private static final Gson gson = new Gson();
 
     private final String name;
     private final Location corner1;
     private final Location corner2;
+    @Getter
     private final Map<String, BlockData> originalBlocks = new HashMap<>();
-    private final Map<RegenZoneFlag, Boolean> flags = new HashMap<>();
-    private final List<RegenZoneCondition> conditions = new ArrayList<>();
-    private final List<RegenZoneAction> actions = new ArrayList<>();
+    private final Map<ZoneFlag, Boolean> flags = new HashMap<>();
 
     private final RegenScheduler scheduler = RegenSystem.getInstance().getScheduler();
 
-    public Zone(String name, Location corner1, Location corner2) {
+    public ZoneImpl(String name, Location corner1, Location corner2) {
         this.name = name;
         this.corner1 = corner1;
         this.corner2 = corner2;
         captureState();
 
-        for (RegenZoneFlag flag : RegenZoneFlag.values()) {
+        for (ZoneFlag flag : ZoneFlag.values()) {
             flags.put(flag, true);
         }
     }
 
     @Override
-    public void addCondition(RegenZoneCondition condition) {
-        conditions.add(condition);
-    }
-
-    @Override
-    public void removeCondition(RegenZoneCondition condition) {
-        conditions.remove(condition);
-    }
-
-    @Override
-    public void addAction(RegenZoneAction action) {
-        actions.add(action);
-    }
-
-    @Override
-    public void removeAction(RegenZoneAction action) {
-        actions.remove(action);
-    }
-
-    @Override
-    public boolean hasFlag(RegenZoneFlag flag) {
+    public boolean hasFlag(ZoneFlag flag) {
         return flags.getOrDefault(flag, false);
     }
 
     @Override
-    public void setFlag(RegenZoneFlag flag, boolean value) {
+    public void setFlag(ZoneFlag flag, boolean value) {
         boolean old = flags.getOrDefault(flag, false);
         if (old == value) return;
 
@@ -95,29 +77,26 @@ public class Zone implements RegenZone {
     }
 
     @Override
-    public Map<RegenZoneFlag, Boolean> getFlags() {
+    public Map<ZoneFlag, Boolean> getFlags() {
         return new HashMap<>(flags);
     }
 
-    @Override
     public void loadFlags() {
         FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
-        for (RegenZoneFlag flag : RegenZoneFlag.values()) {
+        for (ZoneFlag flag : ZoneFlag.values()) {
             boolean value = config.getBoolean("zones." + name + ".flags." + flag.name(), false);
             flags.put(flag, value);
         }
     }
 
-    @Override
     public void saveFlags() {
         FileConfiguration config = RegenSystem.getInstance().getFileManager().get(Key.File.ZONE);
-        for (Map.Entry<RegenZoneFlag, Boolean> entry : flags.entrySet()) {
+        for (Map.Entry<ZoneFlag, Boolean> entry : flags.entrySet()) {
             config.set("zones." + name + ".flags." + entry.getKey().name(), entry.getValue());
         }
         RegenSystem.getInstance().getFileManager().save(Key.File.ZONE);
     }
 
-    @Override
     public void captureState() {
         originalBlocks.clear();
         for (int x = Math.min(corner1.getBlockX(), corner2.getBlockX()); x <= Math.max(corner1.getBlockX(), corner2.getBlockX()); x++) {
@@ -143,87 +122,95 @@ public class Zone implements RegenZone {
     }
 
     @Override
-    public void regenerate() {
-        ZonePreRegenEvent preEvent = new ZonePreRegenEvent(this);
-        Bukkit.getPluginManager().callEvent(preEvent);
-        if (preEvent.isCancelled()) return;
+    public RegenResult regenerate() {
+        try {
+            if (!isEnabled()) {
+                return RegenResult.SKIP;
+            }
 
-        World world = corner1.getWorld();
-        if (world == null) return;
+            ZonePreRegenEvent preEvent = new ZonePreRegenEvent(this);
+            Bukkit.getPluginManager().callEvent(preEvent);
+            if (preEvent.isCancelled()) return RegenResult.STOP;
 
-        int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
-        int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
-        int minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
-        int maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
-        int minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
-        int maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
+            World world = corner1.getWorld();
+            if (world == null) return RegenResult.ERROR;
 
-        // Étape 1 : expulser les joueurs
-        world.getPlayers().stream()
-                .filter(player -> {
-                    Location loc = player.getLocation();
-                    return loc.getWorld().equals(world)
-                            && loc.getX() >= minX && loc.getX() <= maxX
-                            && loc.getY() >= minY && loc.getY() <= maxY
-                            && loc.getZ() >= minZ && loc.getZ() <= maxZ;
-                })
-                .forEach(player -> {
-                    Location safeLoc = findSafeLocationNearZone(world, minX, maxX, minY, maxY, minZ, maxZ);
-                    if (safeLoc != null) {
-                        PlatformHelper.teleport(player, safeLoc);
-                        Util.send(player, "&eYou've been moved out of a regenerating zone.");
-                    } else {
-                        Util.send(player, "&cNo safe position found outside the zone !");
+            int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
+            int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
+            int minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
+            int maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
+            int minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
+            int maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
+
+            // Étape 1 : expulser les joueurs
+            world.getPlayers().stream()
+                    .filter(player -> {
+                        Location loc = player.getLocation();
+                        return loc.getWorld().equals(world)
+                                && loc.getX() >= minX && loc.getX() <= maxX
+                                && loc.getY() >= minY && loc.getY() <= maxY
+                                && loc.getZ() >= minZ && loc.getZ() <= maxZ;
+                    })
+                    .forEach(player -> {
+                        Location safeLoc = findSafeLocationNearZone(world, minX, maxX, minY, maxY, minZ, maxZ);
+                        if (safeLoc != null) {
+                            PlatformHelper.teleport(player, safeLoc);
+                            Util.send(player, "&eYou've been moved out of a regenerating zone.");
+                        } else {
+                            Util.send(player, "&cNo safe position found outside the zone !");
+                        }
+                    });
+
+            // Chargement des chunks nécessaires (une seule fois par chunk)
+            int chunkMinX = minX >> 4;
+            int chunkMaxX = maxX >> 4;
+            int chunkMinZ = minZ >> 4;
+            int chunkMaxZ = maxZ >> 4;
+
+            for (int cx = chunkMinX; cx <= chunkMaxX; cx++) {
+                for (int cz = chunkMinZ; cz <= chunkMaxZ; cz++) {
+                    if (!world.getChunkAt(cx, cz).isLoaded()) {
+                        world.getChunkAt(cx, cz).load();
                     }
-                });
-
-        // Chargement des chunks nécessaires (une seule fois par chunk)
-        int chunkMinX = minX >> 4;
-        int chunkMaxX = maxX >> 4;
-        int chunkMinZ = minZ >> 4;
-        int chunkMaxZ = maxZ >> 4;
-
-        for (int cx = chunkMinX; cx <= chunkMaxX; cx++) {
-            for (int cz = chunkMinZ; cz <= chunkMaxZ; cz++) {
-                if (!world.getChunkAt(cx, cz).isLoaded()) {
-                    world.getChunkAt(cx, cz).load();
                 }
             }
+
+            int changedBlocks = 0;
+
+            for (Map.Entry<String, BlockData> entry : originalBlocks.entrySet()) {
+                String[] parts = entry.getKey().split(",");
+                int x = Integer.parseInt(parts[0]);
+                int y = Integer.parseInt(parts[1]);
+                int z = Integer.parseInt(parts[2]);
+                Location loc = new Location(world, x, y, z);
+
+                BlockData originalBlockData = entry.getValue();
+                BlockData currentBlockData = loc.getBlock().getBlockData();
+
+                // Ne pas toucher si le bloc est déjà à l'état voulu
+                if (currentBlockData.equals(originalBlockData)) continue;
+
+                // Ne pas remplacer un bloc d'air (tu peux changer la condition si besoin)
+                if (originalBlockData.getMaterial().isAir()) continue;
+
+                loc.getBlock().setBlockData(originalBlockData, false);
+                changedBlocks++;
+            }
+
+            ZonePostRegenEvent postEvent = new ZonePostRegenEvent(this);
+            Bukkit.getPluginManager().callEvent(postEvent);
+            return RegenResult.SUCCESS;
+        } catch (Exception e) {
+            RegenSystem.getInstance().logException(e);
+            return RegenResult.ERROR;
         }
-
-        int changedBlocks = 0;
-
-        for (Map.Entry<String, BlockData> entry : originalBlocks.entrySet()) {
-            String[] parts = entry.getKey().split(",");
-            int x = Integer.parseInt(parts[0]);
-            int y = Integer.parseInt(parts[1]);
-            int z = Integer.parseInt(parts[2]);
-            Location loc = new Location(world, x, y, z);
-
-            BlockData originalBlockData = entry.getValue();
-            BlockData currentBlockData = loc.getBlock().getBlockData();
-
-            // Ne pas toucher si le bloc est déjà à l'état voulu
-            if (currentBlockData.equals(originalBlockData)) continue;
-
-            // Ne pas remplacer un bloc d'air (tu peux changer la condition si besoin)
-            if (originalBlockData.getMaterial().isAir()) continue;
-
-            loc.getBlock().setBlockData(originalBlockData, false);
-            changedBlocks++;
-        }
-
-        ZonePostRegenEvent postEvent = new ZonePostRegenEvent(this);
-        Bukkit.getPluginManager().callEvent(postEvent);
     }
 
-    @Override
     public Map<String, String> getOriginalBlockData() {
         return originalBlocks.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAsString()));
     }
 
-    @Override
     public void load() {
         originalBlocks.clear();
         try (Connection conn = RegenSystem.getInstance().getDatabaseManager().getConnection();
@@ -255,7 +242,6 @@ public class Zone implements RegenZone {
         }
     }
 
-    @Override
     public void save() {
         try (Connection conn = RegenSystem.getInstance().getDatabaseManager().getConnection()) {
             conn.setAutoCommit(false);
@@ -294,11 +280,6 @@ public class Zone implements RegenZone {
             RegenSystem.getInstance().getLogger().severe("❌ Unable to connect to SQLite database!");
             RegenSystem.getInstance().logException(e);
         }
-    }
-
-    @Override
-    public Map<String, BlockData> getOriginalBlocks() {
-        return originalBlocks;
     }
 
     @Override
@@ -354,7 +335,6 @@ public class Zone implements RegenZone {
         return null; // Aucun endroit sûr trouvé
     }
 
-    @Override
     public void teleportPlayersOut() {
         int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
         int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
@@ -376,7 +356,6 @@ public class Zone implements RegenZone {
                 });
     }
 
-    @Override
     public void clearEntities(EntityType... types) {
         Set<EntityType> typeSet = new HashSet<>(Arrays.asList(types));
         corner1.getWorld().getEntities().stream()
@@ -390,6 +369,11 @@ public class Zone implements RegenZone {
         return (int) corner1.getWorld().getPlayers().stream()
                 .filter(p -> contains(p.getLocation()))
                 .count();
+    }
+
+    @Override
+    public int getBlockCount() {
+        return originalBlocks.size();
     }
 
     @Override
@@ -446,7 +430,6 @@ public class Zone implements RegenZone {
         );
     }
 
-    @Override
     public String toJson() {
         JsonObject obj = new JsonObject();
         obj.addProperty("name", name);
@@ -464,16 +447,15 @@ public class Zone implements RegenZone {
         return gson.toJson(obj);
     }
 
-    @Override
-    public RegenZone fromJson(String json) {
+    public ZoneImpl fromJson(String json) {
         JsonObject obj = gson.fromJson(json, JsonObject.class);
         Location c1 = deserializeLocation(obj.get("corner1").getAsString());
         Location c2 = deserializeLocation(obj.get("corner2").getAsString());
-        RegenZone zone = new Zone(obj.get("name").getAsString(), c1, c2);
+        ZoneImpl zone = new ZoneImpl(obj.get("name").getAsString(), c1, c2);
 
         Type flagMapType = new TypeToken<Map<String, Boolean>>() {}.getType();
         Map<String, Boolean> flagsMap = gson.fromJson(obj.get("flags"), flagMapType);
-        flagsMap.forEach((k, v) -> zone.setFlag(RegenZoneFlag.valueOf(k), v));
+        flagsMap.forEach((k, v) -> zone.setFlag(ZoneFlag.valueOf(k), v));
 
         Type blocksMapType = new TypeToken<Map<String, String>>() {}.getType();
         Map<String, String> blocksMap = gson.fromJson(obj.get("originalBlocks"), blocksMapType);

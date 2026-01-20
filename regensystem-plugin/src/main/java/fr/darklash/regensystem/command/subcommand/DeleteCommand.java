@@ -3,10 +3,10 @@ package fr.darklash.regensystem.command.subcommand;
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.RegenSystemAPI;
 import fr.darklash.regensystem.command.SubCommand;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
-import fr.darklash.regensystem.util.Placeholders;
-import fr.darklash.regensystem.util.ZoneService;
+import fr.darklash.regensystem.placeholder.Placeholders;
+import fr.darklash.regensystem.internal.zone.ZoneAdminService;
+import fr.darklash.regensystem.util.Util;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -16,9 +16,9 @@ import java.util.Set;
 
 public class DeleteCommand implements SubCommand {
 
-    private final ZoneService service;
+    private final ZoneAdminService service;
 
-    public DeleteCommand(ZoneService service) {
+    public DeleteCommand(ZoneAdminService service) {
         this.service = service;
     }
 
@@ -40,12 +40,12 @@ public class DeleteCommand implements SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            MessageManager.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
+            Util.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
             return true;
         }
 
         if (!player.hasPermission(getPermission())) {
-            MessageManager.send(player, Key.Message.NO_PERMISSION);
+            Util.send(player, Key.Message.NO_PERMISSION);
             return true;
         }
 
@@ -53,9 +53,9 @@ public class DeleteCommand implements SubCommand {
 
         if (RegenSystem.getInstance().getFileManager().get(Key.File.ZONE).contains("zones." + zoneName)) {
             service.deleteZone(zoneName);
-            MessageManager.send(player, Key.Message.ZONE_DELETED, Placeholders.of("name", zoneName).asMap());
+            Util.send(player, Key.Message.ZONE_DELETED, Placeholders.of("name", zoneName).asMap());
         } else {
-            MessageManager.send(player, Key.Message.ZONE_NOT_FOUND, Placeholders.of("name", zoneName).asMap());
+            Util.send(player, Key.Message.ZONE_NOT_FOUND, Placeholders.of("name", zoneName).asMap());
         }
         return true;
     }
@@ -64,7 +64,7 @@ public class DeleteCommand implements SubCommand {
     public List<String> tabComplete(Player player, String[] args) {
         if (args.length == 2) {
             String input = args[1].toLowerCase();
-            Set<String> zones = RegenSystemAPI.get().getZoneNames();
+            Set<String> zones = RegenSystemAPI.getZones().getZoneNames();
             List<String> result = new ArrayList<>();
 
             for (String zone : zones) {

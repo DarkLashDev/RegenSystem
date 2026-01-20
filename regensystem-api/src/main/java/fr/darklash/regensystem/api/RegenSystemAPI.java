@@ -1,85 +1,166 @@
 package fr.darklash.regensystem.api;
 
-import fr.darklash.regensystem.api.zone.RegenZoneManager;
+import fr.darklash.regensystem.api.zone.ZoneManager;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Main access point to the RegenSystem API.
+ * <h1>RegenSystemAPI</h1>
+ *
  * <p>
- * Provides access to the loaded {@link RegenZoneManager} implementation.
- * Other plugins can use this API to manage zones or retrieve zone information.
+ * Central entry point of the <b>RegenSystem public API</b>.
+ * This class provides access to all regenerable zones managed by the plugin
+ * and exposes versioning information for compatibility checks.
+ * </p>
+ *
+ * <p>
+ * External plugins must use this class to interact with RegenSystem.
+ * Direct access to internal or core classes is strictly forbidden.
+ * </p>
+ *
+ * <h2>Usage</h2>
+ *
+ * <pre>{@code
+ * if (!RegenSystemAPI.isInitialized()) {
+ *     throw new IllegalStateException("RegenSystem is not available");
+ * }
+ *
+ * ZoneManager zones = RegenSystemAPI.getZones();
+ * }</pre>
+ *
+ * <h2>API Versioning</h2>
+ *
+ * <p>
+ * The API follows <b>Semantic Versioning</b>:
+ * </p>
+ *
+ * <ul>
+ *   <li><b>MAJOR</b> – Breaking changes</li>
+ *   <li><b>MINOR</b> – Backward-compatible additions</li>
+ *   <li><b>PATCH</b> – Bug fixes and internal improvements</li>
+ * </ul>
+ *
+ * <p>
+ * External plugins are encouraged to check the API version
+ * to ensure compatibility.
+ * </p>
+ *
+ * <h2>Thread Safety</h2>
+ *
+ * <p>
+ * All methods exposed by the API are safe to call from the server thread.
+ * Any asynchronous behavior is handled internally by RegenSystem.
+ * </p>
+ *
+ * <h2>Important Notes</h2>
+ *
+ * <ul>
+ *   <li>This class cannot be instantiated</li>
+ *   <li>The API is initialized automatically by the RegenSystem plugin</li>
+ *   <li>Calling {@link #getZones()} before initialization will throw an exception</li>
+ * </ul>
+ *
+ * @author DarkLash
+ * @since API 1.0.0
  */
 public final class RegenSystemAPI {
 
     /**
-     * Singleton instance of the {@link RegenZoneManager}.
+     * Full API version string.
      * <p>
-     * This is set internally when the plugin initializes
-     * and can be accessed by other plugins through {@link #get()}.
+     * Example: {@code "1.0.0"}
      */
-    private static RegenZoneManager instance;
+    public static final String API_VERSION = "1.0.0";
 
     /**
-     * Returns the current instance of the {@link RegenZoneManager}.
+     * API major version.
      * <p>
-     * This method is the main entry point for other plugins
-     * to interact with the RegenSystem API.
-     *
-     * @return the API instance
-     * @throws IllegalStateException if the API has not been initialized yet
+     * Incremented when breaking changes are introduced.
      */
-    public static RegenZoneManager get() {
-        if (instance == null) {
-            throw new IllegalStateException("RegenSystem API has not been loaded yet.");
+    public static final int API_MAJOR = 1;
+
+    /**
+     * API minor version.
+     * <p>
+     * Incremented when new backward-compatible features are added.
+     */
+    public static final int API_MINOR = 0;
+
+    /**
+     * API patch version.
+     * <p>
+     * Incremented for bug fixes and internal improvements.
+     */
+    public static final int API_PATCH = 0;
+
+    /**
+     * Internal reference to the zone manager implementation.
+     * <p>
+     * This field is initialized by the RegenSystem plugin during startup.
+     */
+    private static ZoneManager manager;
+
+    /**
+     * Returns the {@link ZoneManager} used to access and query all registered zones.
+     *
+     * <p>
+     * This is the primary method used by external plugins to interact
+     * with RegenSystem zones.
+     * </p>
+     *
+     * <p>
+     * If the API has not yet been initialized, this method will throw
+     * an {@link IllegalStateException}.
+     * </p>
+     *
+     * @return the public {@link ZoneManager} instance
+     * @throws IllegalStateException if the API is not initialized
+     */
+    public static ZoneManager getZones() {
+        if (manager == null) {
+            throw new IllegalStateException("RegenSystem API has not been initialized yet.");
         }
-        return instance;
+        return manager;
     }
 
     /**
-     * Initializes the API with the provided implementation.
-     * <p>
-     * This method should only be called internally by the RegenSystem
-     * plugin itself during startup. Calling this method more than once
-     * will throw an exception to prevent accidental re-initialization.
+     * Initializes the RegenSystem API.
      *
-     * @param impl the implementation of the {@link RegenZoneManager}
-     * @throws IllegalStateException if the API has already been initialized
+     * <p>
+     * <b>This method is for internal use only</b> and is called automatically
+     * by the RegenSystem plugin during its startup phase.
+     * </p>
+     *
+     * <p>
+     * External plugins must never call this method.
+     * </p>
+     *
+     * @param impl the internal {@link ZoneManager} implementation
+     * @throws IllegalStateException if the API is already initialized
      */
-    public static void init(RegenZoneManager impl) {
-        if (instance != null) {
-            throw new IllegalStateException("RegenSystem API has already been initialized.");
+    @ApiStatus.Internal
+    public static void init(ZoneManager impl) {
+        if (manager != null) {
+            throw new IllegalStateException("RegenSystem API already initialized.");
         }
-        instance = impl;
+        manager = impl;
     }
 
     /**
-     * Checks whether the API has been initialized.
+     * Checks whether the RegenSystem API has been initialized.
+     *
      * <p>
-     * This is useful for other plugins that want to verify
-     * if the API is available before attempting to use it.
+     * This method can be safely used by external plugins
+     * to verify that RegenSystem is loaded and ready.
+     * </p>
      *
      * @return {@code true} if the API is initialized, {@code false} otherwise
      */
     public static boolean isInitialized() {
-        return instance != null;
-    }
-
-    /**
-     * Returns the current version of the RegenSystem API.
-     * <p>
-     * This can be used by other plugins to ensure compatibility.
-     *
-     * @return the API version string (e.g., "0.0.1")
-     */
-    public static String getVersion() {
-        return "0.0.1";
+        return manager != null;
     }
 
     /**
      * Private constructor to prevent instantiation.
-     * <p>
-     * This class is a static utility holder and should never be instantiated.
      */
-    private RegenSystemAPI() {
-        // Prevent instantiation
-    }
+    private RegenSystemAPI() {}
 }

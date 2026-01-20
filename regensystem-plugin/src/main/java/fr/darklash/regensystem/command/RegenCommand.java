@@ -2,10 +2,9 @@ package fr.darklash.regensystem.command;
 
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.command.subcommand.*;
+import fr.darklash.regensystem.internal.zone.ZoneAdminService;
 import fr.darklash.regensystem.listener.Selector;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.*;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,7 +19,7 @@ public class RegenCommand implements CommandExecutor, TabCompleter {
     private final Map<String, SubCommand> subCommands = new HashMap<>();
 
     public RegenCommand() {
-        ZoneService service = new ZoneService(RegenSystem.getInstance());
+        ZoneAdminService service = new ZoneAdminService(RegenSystem.getInstance());
 
         Selector selector = RegenSystem.getInstance().getSelectorListener();
 
@@ -46,18 +45,18 @@ public class RegenCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            MessageManager.send((Player) sender, Key.Message.ONLY_PLAYERS);
+            Util.send((Player) sender, Key.Message.ONLY_PLAYERS);
             return true;
         }
 
         if (args.length == 0) {
-            MessageManager.send(player, Key.Message.REGEN_CMD_USAGE);
+            Util.send(player, Key.Message.REGEN_CMD_USAGE);
             return true;
         }
 
         SubCommand sub = subCommands.get(args[0].toLowerCase());
         if (sub == null) {
-            MessageManager.send(player, Key.Message.UNKNOWN_SUBCOMMAND);
+            Util.send(player, Key.Message.UNKNOWN_SUBCOMMAND);
             return true;
         }
 

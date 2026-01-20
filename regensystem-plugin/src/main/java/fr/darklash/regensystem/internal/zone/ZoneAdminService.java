@@ -1,19 +1,17 @@
-package fr.darklash.regensystem.util;
+package fr.darklash.regensystem.internal.zone;
 
 import fr.darklash.regensystem.RegenSystem;
-import fr.darklash.regensystem.api.RegenSystemAPI;
-import fr.darklash.regensystem.api.zone.RegenZone;
-import fr.darklash.regensystem.api.zone.RegenZoneManager;
+import fr.darklash.regensystem.util.Key;
 import org.bukkit.configuration.file.FileConfiguration;
 
-public class ZoneService {
+public class ZoneAdminService {
 
     private final RegenSystem plugin;
-    private final RegenZoneManager api;
+    private final ZoneManagerImpl zoneManager;
 
-    public ZoneService(RegenSystem plugin) {
+    public ZoneAdminService(RegenSystem plugin) {
         this.plugin = plugin;
-        this.api = RegenSystemAPI.get();
+        this.zoneManager = plugin.getZoneManager();
     }
 
     private FileConfiguration getZoneConfig() {
@@ -32,16 +30,20 @@ public class ZoneService {
         FileConfiguration config = getZoneConfig();
         config.set(zonePath(name), null);
         saveZoneConfig();
-        api.deleteZone(name);
-        plugin.getLogger().info("Zone '" + name + "' deleted");
+
+        zoneManager.deleteZone(name);
+
+        plugin.getLogger().info("ZoneImpl '" + name + "' deleted");
     }
 
     private void setZoneEnabled(String name, boolean enabled) {
         FileConfiguration config = getZoneConfig();
         config.set(zonePath(name) + ".enabled", enabled);
         saveZoneConfig();
-        api.loadZones();
-        plugin.getLogger().info("Zone '" + name + "' " + (enabled ? "enabled" : "disabled"));
+
+        zoneManager.loadZones();
+
+        plugin.getLogger().info("ZoneImpl '" + name + "' " + (enabled ? "enabled" : "disabled"));
     }
 
     public void enableZone(String name) {
@@ -64,13 +66,24 @@ public class ZoneService {
         FileConfiguration config = getZoneConfig();
         config.set("global.regen-enabled", enabled);
         saveZoneConfig();
-        api.loadZones();
+
+        zoneManager.loadZones();
+
         plugin.getLogger().info("All zones " + (enabled ? "enabled" : "disabled"));
     }
 
-    public void snapshotZone(RegenZone zone) {
+    public void snapshotZone(String zoneName) {
+        ZoneImpl zone = zoneManager.getZoneInternal(zoneName).orElse(null);
+
+        if (zone == null) {
+            throw new IllegalArgumentException("ZoneImpl not found: " + zoneName);
+        }
+
         zone.captureState();
         zone.save();
-        plugin.getLogger().info("Snapshot saved for zone '" + zone.getName() + "'");
+
+        plugin.getLogger().info(
+                "Snapshot saved for zone '" + zone.getName() + "'"
+        );
     }
 }

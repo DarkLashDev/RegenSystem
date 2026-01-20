@@ -1,9 +1,9 @@
 package fr.darklash.regensystem.command.subcommand;
 
 import fr.darklash.regensystem.command.SubCommand;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
-import fr.darklash.regensystem.util.Placeholders;
+import fr.darklash.regensystem.placeholder.Placeholders;
+import fr.darklash.regensystem.util.Util;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class LangCommand implements SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            MessageManager.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
+            Util.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
             return true;
         }
 
@@ -38,11 +38,11 @@ public class LangCommand implements SubCommand {
 
         try {
             Key.Lang lang = Key.Lang.valueOf(input);
-            MessageManager.setLang(lang);
+            Util.setLang(lang);
 
-            MessageManager.send(player, Key.Message.LANGUAGE_SET, Placeholders.of("lang", lang.name()).asMap());
+            Util.send(player, Key.Message.LANGUAGE_SET, Placeholders.of("lang", lang.name()).asMap());
         } catch (IllegalArgumentException e) {
-            MessageManager.send(player, Key.Message.UNKNOWN_LANGUAGE);
+            Util.send(player, Key.Message.UNKNOWN_LANGUAGE);
         }
 
         return true;

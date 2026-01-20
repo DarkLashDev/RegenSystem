@@ -1,5 +1,6 @@
-package fr.darklash.regensystem.util;
+package fr.darklash.regensystem.platform;
 
+import fr.darklash.regensystem.util.Util;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

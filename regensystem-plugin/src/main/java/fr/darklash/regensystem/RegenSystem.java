@@ -1,7 +1,6 @@
 package fr.darklash.regensystem;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.darklash.regensystem.api.RegenSystemAPI;
@@ -10,17 +9,17 @@ import fr.darklash.regensystem.listener.Flag;
 import fr.darklash.regensystem.listener.Menu;
 import fr.darklash.regensystem.listener.Session;
 import fr.darklash.regensystem.listener.Selector;
-import fr.darklash.regensystem.manager.DatabaseManager;
-import fr.darklash.regensystem.manager.FileManager;
-import fr.darklash.regensystem.manager.MenuManager;
-import fr.darklash.regensystem.manager.ZoneManager;
-import fr.darklash.regensystem.util.Platform;
-import fr.darklash.regensystem.util.RegenPlaceholders;
-import fr.darklash.regensystem.util.ServerPlatform;
+import fr.darklash.regensystem.storage.DatabaseManager;
+import fr.darklash.regensystem.storage.FileManager;
+import fr.darklash.regensystem.menu.MenuManager;
+import fr.darklash.regensystem.internal.zone.ZoneManagerImpl;
+import fr.darklash.regensystem.platform.Platform;
+import fr.darklash.regensystem.placeholder.RegenPlaceholders;
+import fr.darklash.regensystem.platform.ServerPlatform;
 import fr.darklash.regensystem.util.Util;
-import fr.darklash.regensystem.util.scheduler.FoliaRegenScheduler;
-import fr.darklash.regensystem.util.scheduler.PaperRegenScheduler;
-import fr.darklash.regensystem.util.scheduler.RegenScheduler;
+import fr.darklash.regensystem.platform.scheduler.FoliaRegenScheduler;
+import fr.darklash.regensystem.platform.scheduler.PaperRegenScheduler;
+import fr.darklash.regensystem.platform.scheduler.RegenScheduler;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -36,7 +35,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -52,7 +50,7 @@ public final class RegenSystem extends JavaPlugin {
     @Getter
     private static RegenSystem instance;
     private FileManager fileManager;
-    private ZoneManager zoneManager;
+    private ZoneManagerImpl zoneManager;
     private MenuManager menuManager;
     private DatabaseManager databaseManager;
     private Selector selectorListener;
@@ -84,7 +82,7 @@ public final class RegenSystem extends JavaPlugin {
             }
         }
 
-        zoneManager = new ZoneManager();
+        zoneManager = new ZoneManagerImpl();
 
         RegenSystemAPI.init(zoneManager);
 
@@ -169,13 +167,18 @@ public final class RegenSystem extends JavaPlugin {
                     return;
                 }
 
-                String projectId = "regensystem"; // Slug Modrinth
-                String url = "https://api.modrinth.com/v2/project/" + projectId + "/version";
+                String projectId = "regensystem"; // Modrinth slug
+                String url = "https://api.modrinth.com/v2/project/" + projectId + "/version?featured=true";
 
-                URI uri = URI.create(url); // Crée un URI à partir de la String
+                URI uri = URI.create(url);
                 HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
-                connection.setRequestProperty("User-Agent", "RegenSystem/" + getDescription().getVersion());
+                connection.setRequestProperty(
+                        "User-Agent",
+                        "RegenSystem/" + getDescription().getVersion()
+                );
                 connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
 
                 int responseCode = connection.getResponseCode();
                 if (responseCode != 200) {
@@ -183,26 +186,29 @@ public final class RegenSystem extends JavaPlugin {
                     return;
                 }
 
-                JsonArray versions = JsonParser.parseReader(new InputStreamReader(connection.getInputStream())).getAsJsonArray();
+                JsonArray versions = JsonParser.parseReader(
+                        new InputStreamReader(connection.getInputStream())
+                ).getAsJsonArray();
+
                 if (versions.isEmpty()) {
-                    getLogger().warning("No versions found on Modrinth.");
+                    getLogger().warning("No featured release found on Modrinth.");
                     return;
                 }
 
-                JsonObject latestVersion = getJsonObject(versions);
-                if (latestVersion == null) {
-                    getLogger().warning("No release versions found on Modrinth.");
-                    return;
-                }
+                JsonObject latestVersion = versions.get(0).getAsJsonObject();
 
                 String latest = latestVersion.get("version_number").getAsString();
                 String current = getDescription().getVersion();
+
                 this.latestVersionString = latest;
                 this.lastChecked = Instant.now();
-                saveCache(); // Sauvegarder pour la prochaine fois
+                saveCache();
 
                 if (compareVersions(latest, current) > 0) {
-                    getLogger().warning("⚠ A new version of RegenSystem is available : " + latest + " (you are on " + current + ")");
+                    getLogger().warning(
+                            "⚠ A new version of RegenSystem is available: " +
+                                    latest + " (current: " + current + ")"
+                    );
 
                     if (getConfig().getBoolean("updates.notify-admins", true)) {
                         scheduler.runSync(() -> notifyAdmins(latest, current));
@@ -212,33 +218,10 @@ public final class RegenSystem extends JavaPlugin {
                 }
 
             } catch (Exception e) {
-                getLogger().warning("Failed to check for updates : " + e.getMessage());
+                getLogger().warning("Failed to check for updates: " + e.getMessage());
                 logException(e);
             }
         });
-    }
-
-    private static @Nullable JsonObject getJsonObject(JsonArray versions) {
-        JsonObject latestVersion = null;
-        Instant latestDate = Instant.EPOCH;
-
-        for (JsonElement element : versions) {
-            JsonObject version = element.getAsJsonObject();
-
-            // Ne garder que les releases
-            if (!version.has("version_type") ||
-                    !"release".equalsIgnoreCase(version.get("version_type").getAsString())) {
-                continue;
-            }
-
-            Instant publishedDate = Instant.parse(version.get("date_published").getAsString());
-
-            if (publishedDate.isAfter(latestDate)) {
-                latestDate = publishedDate;
-                latestVersion = version;
-            }
-        }
-        return latestVersion;
     }
 
     public void notifyAdmins(String latest, String current) {

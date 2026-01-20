@@ -1,10 +1,10 @@
 package fr.darklash.regensystem.listener;
 
 import fr.darklash.regensystem.RegenSystem;
-import fr.darklash.regensystem.api.zone.RegenZone;
-import fr.darklash.regensystem.manager.ZoneManager;
+import fr.darklash.regensystem.api.zone.Zone;
+import fr.darklash.regensystem.internal.zone.ZoneManagerImpl;
 import fr.darklash.regensystem.util.Util;
-import fr.darklash.regensystem.api.zone.RegenZoneFlag;
+import fr.darklash.regensystem.api.zone.ZoneFlag;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -21,20 +21,20 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 public class Flag implements Listener {
 
-    private final ZoneManager zoneManager;
+    private final ZoneManagerImpl zoneManager;
 
     public Flag() {
         this.zoneManager = RegenSystem.getInstance().getZoneManager();
     }
 
-    private RegenZone getZoneAt(Location loc) {
-        for (RegenZone zone : zoneManager.getZones()) {
+    private Zone getZoneAt(Location loc) {
+        for (Zone zone : zoneManager.getZones()) {
             if (zone.contains(loc)) return zone;
         }
         return null;
     }
 
-    private boolean disallowed(RegenZone zone, RegenZoneFlag flag) {
+    private boolean disallowed(Zone zone, ZoneFlag flag) {
         return zone != null && !zone.hasFlag(flag);
     }
 
@@ -52,10 +52,10 @@ public class Flag implements Listener {
             attackingPlayer = p;
         }
 
-        RegenZone zone = getZoneAt(playerVictim.getLocation());
+        Zone zone = getZoneAt(playerVictim.getLocation());
 
         if (attackingPlayer != null) {
-            if (disallowed(zone, RegenZoneFlag.PVP)) {
+            if (disallowed(zone, ZoneFlag.PVP)) {
                 event.setCancelled(true);
                 Util.send(attackingPlayer, "&cPVP is disabled in this zone!");
             }
@@ -63,7 +63,7 @@ public class Flag implements Listener {
         }
 
         // Sinon, c'est un mob (ou autre entité non-joueur) -> MOB_DAMAGE
-        if (disallowed(zone, RegenZoneFlag.MOB_DAMAGE)) {
+        if (disallowed(zone, ZoneFlag.MOB_DAMAGE)) {
             event.setCancelled(true);
             // message au joueur touché (optionnel pour éviter le spam)
             Util.send(playerVictim, "&aMob damage is disabled in this zone.");
@@ -73,9 +73,9 @@ public class Flag implements Listener {
     // --- Block Break ---
     @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        RegenZone zone = getZoneAt(event.getBlock().getLocation());
+        Zone zone = getZoneAt(event.getBlock().getLocation());
         // BUILD agit comme master switch + cas spécifique BLOCK_BREAK
-        if (disallowed(zone, RegenZoneFlag.BLOCK_BREAK)) {
+        if (disallowed(zone, ZoneFlag.BLOCK_BREAK)) {
             event.setCancelled(true);
             Util.send(event.getPlayer(), "&cYou cannot break blocks in this zone!");
         }
@@ -84,9 +84,9 @@ public class Flag implements Listener {
     // --- Block Place ---
     @EventHandler(ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        RegenZone zone = getZoneAt(event.getBlock().getLocation());
+        Zone zone = getZoneAt(event.getBlock().getLocation());
         // BUILD agit comme master switch + cas spécifique BLOCK_PLACE
-        if (disallowed(zone, RegenZoneFlag.BLOCK_PLACE)) {
+        if (disallowed(zone, ZoneFlag.BLOCK_PLACE)) {
             event.setCancelled(true);
             Util.send(event.getPlayer(), "&cYou cannot place blocks in this zone!");
         }
@@ -95,8 +95,8 @@ public class Flag implements Listener {
     // --- Item Drop ---
     @EventHandler(ignoreCancelled = true)
     public void onItemDrop(PlayerDropItemEvent event) {
-        RegenZone zone = getZoneAt(event.getPlayer().getLocation());
-        if (disallowed(zone, RegenZoneFlag.ITEM_DROP)) {
+        Zone zone = getZoneAt(event.getPlayer().getLocation());
+        if (disallowed(zone, ZoneFlag.ITEM_DROP)) {
             event.setCancelled(true);
             Util.send(event.getPlayer(), "&cYou cannot drop items in this zone!");
         }
@@ -107,8 +107,8 @@ public class Flag implements Listener {
     public void onItemPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
-        RegenZone zone = getZoneAt(player.getLocation());
-        if (zone != null && !zone.hasFlag(RegenZoneFlag.ITEM_PICKUP)) {
+        Zone zone = getZoneAt(player.getLocation());
+        if (zone != null && !zone.hasFlag(ZoneFlag.ITEM_PICKUP)) {
             event.setCancelled(true);
             Util.send(player, "&cYou cannot pick up items in this zone!");
         }
@@ -117,8 +117,8 @@ public class Flag implements Listener {
     // --- Mob Spawn ---
     @EventHandler(ignoreCancelled = true)
     public void onMobSpawn(EntitySpawnEvent event) {
-        RegenZone zone = getZoneAt(event.getLocation());
-        if (disallowed(zone, RegenZoneFlag.MOB_SPAWN)) {
+        Zone zone = getZoneAt(event.getLocation());
+        if (disallowed(zone, ZoneFlag.MOB_SPAWN)) {
             event.setCancelled(true);
         }
     }
@@ -126,8 +126,8 @@ public class Flag implements Listener {
     // --- Explosion ---
     @EventHandler(ignoreCancelled = true)
     public void onExplosion(EntityExplodeEvent event) {
-        RegenZone zone = getZoneAt(event.getLocation());
-        if (disallowed(zone, RegenZoneFlag.EXPLOSION)) {
+        Zone zone = getZoneAt(event.getLocation());
+        if (disallowed(zone, ZoneFlag.EXPLOSION)) {
             // Empêche la destruction de blocs (on peut choisir de cancel l'event si on veut tout bloquer)
             event.blockList().clear();
         }

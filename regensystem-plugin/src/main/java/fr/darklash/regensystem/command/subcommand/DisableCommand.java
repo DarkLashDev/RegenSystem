@@ -3,10 +3,10 @@ package fr.darklash.regensystem.command.subcommand;
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.RegenSystemAPI;
 import fr.darklash.regensystem.command.SubCommand;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
-import fr.darklash.regensystem.util.Placeholders;
-import fr.darklash.regensystem.util.ZoneService;
+import fr.darklash.regensystem.placeholder.Placeholders;
+import fr.darklash.regensystem.internal.zone.ZoneAdminService;
+import fr.darklash.regensystem.util.Util;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -17,9 +17,9 @@ import java.util.Set;
 
 public class DisableCommand implements SubCommand {
 
-    private final ZoneService service;
+    private final ZoneAdminService service;
 
-    public DisableCommand(ZoneService service) {
+    public DisableCommand(ZoneAdminService service) {
         this.service = service;
     }
 
@@ -41,12 +41,12 @@ public class DisableCommand implements SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            MessageManager.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
+            Util.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
             return true;
         }
 
         if (!player.hasPermission(getPermission())) {
-            MessageManager.send(player, Key.Message.NO_PERMISSION);
+            Util.send(player, Key.Message.NO_PERMISSION);
             return true;
         }
 
@@ -54,15 +54,15 @@ public class DisableCommand implements SubCommand {
 
         if (args[1].equalsIgnoreCase("all")) {
             service.disableAllZones();
-            MessageManager.send(player, Key.Message.ALL_ZONES_DISABLED);
+            Util.send(player, Key.Message.ALL_ZONES_DISABLED);
         } else {
             String zone = args[1];
             if (!config.contains("zones." + zone)) {
-                MessageManager.send(player, Key.Message.ZONE_NOT_FOUND, Placeholders.of("name", zone).asMap());
+                Util.send(player, Key.Message.ZONE_NOT_FOUND, Placeholders.of("name", zone).asMap());
                 return true;
             }
             service.disableZone(zone);
-            MessageManager.send(player, Key.Message.ZONE_DISABLED, Placeholders.of("name", zone).asMap());
+            Util.send(player, Key.Message.ZONE_DISABLED, Placeholders.of("name", zone).asMap());
         }
         return true;
     }
@@ -71,7 +71,7 @@ public class DisableCommand implements SubCommand {
     public List<String> tabComplete(Player player, String[] args) {
         if (args.length == 2) {
             String input = args[1].toLowerCase();
-            Set<String> zones = RegenSystemAPI.get().getZoneNames();
+            Set<String> zones = RegenSystemAPI.getZones().getZoneNames();
             List<String> result = new ArrayList<>();
 
             if ("all".startsWith(input)) result.add("all");

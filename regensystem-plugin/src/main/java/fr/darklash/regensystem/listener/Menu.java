@@ -1,6 +1,6 @@
 package fr.darklash.regensystem.listener;
 
-import fr.darklash.regensystem.manager.MenuManager;
+import fr.darklash.regensystem.menu.MenuManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;

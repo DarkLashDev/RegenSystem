@@ -1,4 +1,4 @@
-package fr.darklash.regensystem.util;
+package fr.darklash.regensystem.internal.zone;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

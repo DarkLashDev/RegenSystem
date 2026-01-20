@@ -2,7 +2,7 @@ package fr.darklash.regensystem.listener;
 
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.util.Util;
-import fr.darklash.regensystem.util.scheduler.RegenScheduler;
+import fr.darklash.regensystem.platform.scheduler.RegenScheduler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;

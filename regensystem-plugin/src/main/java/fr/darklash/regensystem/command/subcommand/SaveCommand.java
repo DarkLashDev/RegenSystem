@@ -2,13 +2,13 @@ package fr.darklash.regensystem.command.subcommand;
 
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.RegenSystemAPI;
-import fr.darklash.regensystem.api.zone.RegenZoneFlag;
+import fr.darklash.regensystem.api.zone.ZoneFlag;
 import fr.darklash.regensystem.command.SubCommand;
 import fr.darklash.regensystem.listener.Selector;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
-import fr.darklash.regensystem.util.Placeholders;
-import fr.darklash.regensystem.util.builder.ZoneBuilder;
+import fr.darklash.regensystem.placeholder.Placeholders;
+import fr.darklash.regensystem.internal.zone.ZoneFactory;
+import fr.darklash.regensystem.util.Util;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -42,17 +42,17 @@ public class SaveCommand implements SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            MessageManager.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
+            Util.send(player, Key.Message.USAGE, Placeholders.of("usage", getUsage()).asMap());
             return true;
         }
 
         if (!player.hasPermission(getPermission())) {
-            MessageManager.send(player, Key.Message.NO_PERMISSION);
+            Util.send(player, Key.Message.NO_PERMISSION);
             return true;
         }
 
         if (selector == null) {
-            MessageManager.send(player, Key.Message.INTERNAL_ERROR);
+            Util.send(player, Key.Message.INTERNAL_ERROR);
             return true;
         }
 
@@ -61,7 +61,7 @@ public class SaveCommand implements SubCommand {
         Location pos2 = loc != null ? loc[1] : null;
 
         if (pos1 == null || pos2 == null) {
-            MessageManager.send(player, Key.Message.POSITIONS_NOT_SET);
+            Util.send(player, Key.Message.POSITIONS_NOT_SET);
             return true;
         }
 
@@ -73,7 +73,7 @@ public class SaveCommand implements SubCommand {
             try {
                 delay = Integer.parseInt(args[2]);
                 if (delay <= 0) {
-                    MessageManager.send(player, Key.Message.DELAY_MUST_BE_POSITIVE);
+                    Util.send(player, Key.Message.DELAY_MUST_BE_POSITIVE);
                     return true;
                 }
                 argIndex = 3;
@@ -82,7 +82,7 @@ public class SaveCommand implements SubCommand {
             }
         }
 
-        ZoneBuilder builder = new ZoneBuilder()
+        ZoneFactory builder = new ZoneFactory()
                 .name(zoneName)
                 .corner1(pos1)
                 .corner2(pos2)
@@ -95,9 +95,9 @@ public class SaveCommand implements SubCommand {
             if (arg.startsWith("f:")) {
                 String[] split = arg.substring(2).split("=");
                 if (split.length == 2) {
-                    RegenZoneFlag flag = RegenZoneFlag.fromString(split[0]);
+                    ZoneFlag flag = ZoneFlag.fromString(split[0]);
                     if (flag == null) {
-                        MessageManager.send(player, Key.Message.UNKNOWN_FLAG, Placeholders.of("flag", split[0]).asMap());
+                        Util.send(player, Key.Message.UNKNOWN_FLAG, Placeholders.of("flag", split[0]).asMap());
                         continue;
                     }
 
@@ -107,19 +107,19 @@ public class SaveCommand implements SubCommand {
                     } else if (split[1].equalsIgnoreCase("false") || split[1].equalsIgnoreCase("off")) {
                         value = false;
                     } else {
-                        MessageManager.send(player, Key.Message.INVALID_FLAG_VALUE, Placeholders.of("flag", split[0]).asMap());
+                        Util.send(player, Key.Message.INVALID_FLAG_VALUE, Placeholders.of("flag", split[0]).asMap());
                         continue;
                     }
 
                     builder.flag(flag, value);
-                    MessageManager.send(player, Key.Message.FLAG_SET, Placeholders.of("flag", flag.name()).add("value", value).asMap());
+                    Util.send(player, Key.Message.FLAG_SET, Placeholders.of("flag", flag.name()).add("value", value).asMap());
                 }
             }
         }
 
         builder.build();
 
-        MessageManager.send(player, Key.Message.ZONE_SAVED_DELAY,
+        Util.send(player, Key.Message.ZONE_SAVED_DELAY,
                 Placeholders.of("name", zoneName).add("delay", delay).asMap());
 
         selector.getSelections().remove(player);
@@ -130,7 +130,7 @@ public class SaveCommand implements SubCommand {
     @Override
     public List<String> tabComplete(Player player, String[] args) {
         if (args.length == 2) {
-            Collection<String> existing = RegenSystemAPI.get().getZoneNames();
+            Collection<String> existing = RegenSystemAPI.getZones().getZoneNames();
             return getSuggestedZoneNames(args[1], existing);
         }
 
@@ -139,7 +139,7 @@ public class SaveCommand implements SubCommand {
 
             if (lastArg.startsWith("f:") && !lastArg.contains("=")) {
                 String prefix = lastArg.toLowerCase();
-                return Arrays.stream(RegenZoneFlag.values())
+                return Arrays.stream(ZoneFlag.values())
                         .map(flag -> "f:" + flag.name() + "=")
                         .filter(s -> s.toLowerCase().startsWith(prefix))
                         .collect(Collectors.toList());

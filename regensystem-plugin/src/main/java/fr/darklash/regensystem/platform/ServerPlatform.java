@@ -1,4 +1,4 @@
-package fr.darklash.regensystem.util;
+package fr.darklash.regensystem.platform;
 
 import org.bukkit.Bukkit;
 

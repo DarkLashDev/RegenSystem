@@ -2,8 +2,8 @@ package fr.darklash.regensystem.command.subcommand;
 
 import fr.darklash.regensystem.command.SubCommand;
 import fr.darklash.regensystem.listener.Selector;
-import fr.darklash.regensystem.manager.MessageManager;
 import fr.darklash.regensystem.util.Key;
+import fr.darklash.regensystem.util.Util;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -35,12 +35,12 @@ public class Pos2Command implements SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (!player.hasPermission(getPermission())) {
-            MessageManager.send(player, Key.Message.NO_PERMISSION);
+            Util.send(player, Key.Message.NO_PERMISSION);
             return true;
         }
 
         selector.getSelections().computeIfAbsent(player, p -> new Location[2])[1] = player.getLocation();
-        MessageManager.send(player, Key.Message.POSITION2_SET);
+        Util.send(player, Key.Message.POSITION2_SET);
         return true;
     }
 

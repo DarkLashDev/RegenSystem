@@ -29,12 +29,10 @@ A powerful, flexible block regeneration system designed for PvP Box, survival zo
 
 ---
 
-### ✅ RegenSystem API
+### 📚 Documentation
 
-**🔗 Full documentation available here :**
-[RegenSystem API](https://github.com/DarkLash1/RegenSystem/wiki/RegenSystem-API)
-
-Learn how to interact with the plugin through custom events and clean interfaces for building compatible extensions or plugins.
+- 📘 [User Documentation](https://github.com/DarkLashDev/RegenSystem/wiki/User-Documentation)
+- 🧩 [Developer Documentation](https://github.com/DarkLashDev/RegenSystem/wiki/Developer-Documentation)
 
 ---
 

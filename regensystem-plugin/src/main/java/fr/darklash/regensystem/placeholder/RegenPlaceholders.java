@@ -1,8 +1,10 @@
-package fr.darklash.regensystem.util;
+package fr.darklash.regensystem.placeholder;
 
 import fr.darklash.regensystem.RegenSystem;
 import fr.darklash.regensystem.api.RegenSystemAPI;
-import fr.darklash.regensystem.api.zone.RegenZone;
+import fr.darklash.regensystem.api.zone.Zone;
+import fr.darklash.regensystem.internal.zone.ZoneLoc;
+import fr.darklash.regensystem.util.Key;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -42,7 +44,7 @@ public class RegenPlaceholders extends PlaceholderExpansion {
 
         // %regen_zone_count%
         if (params.equalsIgnoreCase("zone_count")) {
-            return String.valueOf(plugin.getZoneManager().getZoneNames().size());
+            return String.valueOf(RegenSystemAPI.getZones().getZones().size());
         }
 
         // %regen_regen_enabled%
@@ -74,34 +76,34 @@ public class RegenPlaceholders extends PlaceholderExpansion {
         // %regen_block_count_<zone>%
         if (params.startsWith("block_count_")) {
             String zoneName = params.substring("block_count_".length());
-            RegenZone zone = RegenSystemAPI.get().getZone(zoneName);
-            if (zone != null) {
-                return String.valueOf(zone.getOriginalBlocks().size());
-            } else {
-                return "unknown";
-            }
+            Zone zone = RegenSystemAPI
+                    .getZones()
+                    .getZone(zoneName)
+                    .orElse(null);
+            if (zone == null) return "unknown";
+            return String.valueOf(zone.getBlockCount());
         }
 
         // %regen_corner1_<zone>%
         if (params.startsWith("corner1_")) {
             String zoneName = params.substring("corner1_".length());
-            RegenZone zone = RegenSystemAPI.get().getZone(zoneName);
-            if (zone != null) {
-                return ZoneLoc.toString(zone.getCorner1());
-            } else {
-                return "unknown";
-            }
+            Zone zone = RegenSystemAPI
+                    .getZones()
+                    .getZone(zoneName)
+                    .orElse(null);
+            if (zone == null) return "unknown";
+            return ZoneLoc.toString(zone.getCorner1());
         }
 
         // %regen_corner2_<zone>%
         if (params.startsWith("corner2_")) {
             String zoneName = params.substring("corner2_".length());
-            RegenZone zone = RegenSystemAPI.get().getZone(zoneName);
-            if (zone != null) {
-                return ZoneLoc.toString(zone.getCorner2());
-            } else {
-                return "unknown";
-            }
+            Zone zone = RegenSystemAPI
+                    .getZones()
+                    .getZone(zoneName)
+                    .orElse(null);
+            if (zone == null) return "unknown";
+            return ZoneLoc.toString(zone.getCorner2());
         }
 
         // %regen_timer_<zone>%
@@ -119,8 +121,12 @@ public class RegenPlaceholders extends PlaceholderExpansion {
         // %regen_name_<zone>%
         if (params.startsWith("name_")) {
             String zoneName = params.substring("name_".length());
-            RegenZone zone = RegenSystemAPI.get().getZone(zoneName);
-            return (zone != null) ? zone.getName() : "unknown";
+            Zone zone = RegenSystemAPI
+                    .getZones()
+                    .getZone(zoneName)
+                    .orElse(null);
+            if (zone == null) return "unknown";
+            return zone.getName();
         }
 
         return null;

@@ -1,4 +1,4 @@
-package fr.darklash.regensystem.util.scheduler;
+package fr.darklash.regensystem.platform.scheduler;
 
 import org.bukkit.Location;
 
